@@ -189,7 +189,7 @@ class Always(Formula):
         object.__setattr__(self, "weights", weights)
 
     def evaluate(self, signal: Signal, semantics: Semantics[Any], t: int = 0) -> Any:
-        horizon = np.asarray(signal).shape[0]
+        horizon = signal.shape[0]
         indices = _window_indices(t=t, horizon=horizon, interval=self.interval)
         if not indices:
             raise ValueError(
@@ -219,7 +219,7 @@ class Eventually(Formula):
         object.__setattr__(self, "weights", weights)
 
     def evaluate(self, signal: Signal, semantics: Semantics[Any], t: int = 0) -> Any:
-        horizon = np.asarray(signal).shape[0]
+        horizon = signal.shape[0]
         indices = _window_indices(t=t, horizon=horizon, interval=self.interval)
         if not indices:
             raise ValueError(
@@ -258,7 +258,7 @@ class Until(Formula):
         object.__setattr__(self, "weights_pair", weights_pair)
 
     def evaluate(self, signal: Signal, semantics: Semantics[Any], t: int = 0) -> Any:
-        horizon = np.asarray(signal).shape[0]
+        horizon = signal.shape[0]
         if t >= horizon:
             raise IndexError(f"t={t} is out of bounds for horizon={horizon}.")
         left_trace = [

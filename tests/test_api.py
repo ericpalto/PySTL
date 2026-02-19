@@ -37,6 +37,13 @@ def test_registry_contains_expected_semantics() -> None:
     assert "ctstl" in names
     assert "dgmsr" in names
     assert "stljax" in names
+    assert "jax" in names
+    assert "jax_classic" in names
+    assert "jax_traditional" in names
+    assert "jax_cumulative" in names
+    assert "jax_ctstl" in names
+    assert "jax_dgmsr" in names
+    assert "jax_stljax" in names
 
 
 def test_boolean_and_temporal_always_with_classic_semantics(

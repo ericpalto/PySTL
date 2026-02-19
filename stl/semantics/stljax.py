@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 from functools import reduce
 from dataclasses import dataclass
 
@@ -11,8 +11,10 @@ import jax.numpy as jnp
 import stljax.formula as stljax_formula
 from stljax import utils as stljax_utils
 
-from stl.api import Or, And, Not, Until, Always, Formula, Predicate, Eventually
 from stl.semantics.base import Semantics
+
+if TYPE_CHECKING:
+    from stl.api import Formula
 
 
 def _ensure_no_weights(weights: Optional[Sequence[float]], where: str) -> None:
@@ -30,8 +32,12 @@ def _to_stljax_interval(start: int, end: Optional[int]):
     return [start, end]
 
 
-def to_stljax_formula(formula: Formula):
+def to_stljax_formula(formula: "Formula"):
     """Convert unified API `Formula` into a native `stljax.formula` object."""
+
+    # Delayed import avoids circular dependency with stl.api -> stl.semantics.
+    # pylint: disable=import-outside-toplevel
+    from stl.api import Or, And, Not, Until, Always, Predicate, Eventually
 
     if isinstance(formula, Predicate):
         if formula.fn is None:
