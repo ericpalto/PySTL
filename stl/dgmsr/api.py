@@ -6,7 +6,7 @@ This module exposes:
 - Temporal operators: `Always`, `Eventually`, `Until`.
 
 All operators use D-GMSR smooth robustness primitives from
-`D_GMSR_Traj_Opt.ipynb` and propagate gradients with chain rule.
+the underlying D-GMSR derivation and propagate gradients with chain rule.
 """
 
 from __future__ import annotations
