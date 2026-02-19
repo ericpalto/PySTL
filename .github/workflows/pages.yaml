@@ -2,46 +2,42 @@ name: Pages
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build_pr:
+  pr-build:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      # If you have a Gemfile in docs/, use bundler. Adjust paths as needed.
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: '3.3'
+          bundler-cache: true
 
-      - name: Install Jekyll
-        run: gem install jekyll -v 3.10.0
+      - name: Build docs with Jekyll (no Pages API)
+        run: bundle exec jekyll build --source ./docs --destination ./_site
+        env:
+          # Avoid the metadata plugin doing GitHub API calls in PR context
+          JEKYLL_GITHUB_TOKEN: ""
+          PAGES_REPO_NWO: ""
 
-      - name: Build docs (PR only, no Pages API)
-        run: jekyll build --source docs --destination _site
-
-  build_deploy:
+  build:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -59,7 +55,7 @@ jobs:
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build_deploy
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -67,7 +63,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Deploy to Pages
         id: deployment
