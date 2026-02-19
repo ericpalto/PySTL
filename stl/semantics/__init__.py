@@ -27,7 +27,6 @@ else:
 registry = SemanticsRegistry()
 registry.register(syntax="classical", backend="numpy", factory=ClassicRobustSemantics)
 registry.register(syntax="cumulative", backend="numpy", factory=CumulativeSemantics)
-registry.register(syntax="ctstl", backend="numpy", factory=CtstlSemantics)
 registry.register(syntax="dgmsr", backend="numpy", factory=DgmsrSemantics)
 if _HAS_JAX:
     registry.register(
@@ -36,13 +35,11 @@ if _HAS_JAX:
     registry.register(
         syntax="cumulative", backend="jax", factory=JaxCumulativeSemantics
     )
-    registry.register(syntax="ctstl", backend="jax", factory=JaxCtstlSemantics)
     registry.register(syntax="dgmsr", backend="jax", factory=JaxDgmsrSemantics)
 
 _SYNTAX_ALIASES = {
     "classical": "classical",
     "cumulative": "cumulative",
-    "ctstl": "ctstl",
     "dgmsr": "dgmsr",
 }
 _BACKEND_ALIASES = {
