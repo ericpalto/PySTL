@@ -35,7 +35,7 @@ def predicates():
     return p1, p2
 
 
-def test_jax_classic_backends_match_numpy_backend(
+def test_jax_classical_matches_numpy_backend(
     signal_np: np.ndarray, signal_jax: jax.Array, predicates
 ) -> None:
     p1, p2 = predicates
@@ -47,19 +47,14 @@ def test_jax_classic_backends_match_numpy_backend(
         p1.until(p2, interval=(0, 3)),
     ]
 
-    for jax_name, np_name in [("jax", "classic"), ("jax_classic", "classic")]:
-        sem_jax = (
-            create_semantics(jax_name, smooth=False)
-            if jax_name == "jax"
-            else create_semantics(jax_name)
-        )
-        sem_np = create_semantics(np_name)
+    sem_jax = create_semantics("classical", backend="jax")
+    sem_np = create_semantics("classical", backend="numpy")
 
-        for phi in formulas:
-            for t in [0, 1]:
-                v_jax = float(phi.evaluate(signal_jax, sem_jax, t=t))
-                v_np = float(phi.evaluate(signal_np, sem_np, t=t))
-                assert v_jax == pytest.approx(v_np, abs=1e-6)
+    for phi in formulas:
+        for t in [0, 1]:
+            v_jax = float(phi.evaluate(signal_jax, sem_jax, t=t))
+            v_np = float(phi.evaluate(signal_np, sem_np, t=t))
+            assert v_jax == pytest.approx(v_np, abs=1e-6)
 
 
 def test_jax_cumulative_matches_numpy_backend(
@@ -71,8 +66,8 @@ def test_jax_cumulative_matches_numpy_backend(
         p1.until(p2, interval=(0, 3)),
     ]
 
-    sem_jax = create_semantics("jax_cumulative")
-    sem_np = create_semantics("cumulative")
+    sem_jax = create_semantics("cumulative", backend="jax")
+    sem_np = create_semantics("cumulative", backend="numpy")
 
     for phi in formulas:
         val_jax = phi.evaluate(signal_jax, sem_jax, t=0)
@@ -87,8 +82,8 @@ def test_jax_ctstl_matches_numpy_backend(
     p1, p2 = predicates
     phi = p1.until(p2, interval=(0, 3))
 
-    sem_jax = create_semantics("jax_ctstl", delta=1.0)
-    sem_np = create_semantics("ctstl", delta=1.0)
+    sem_jax = create_semantics("ctstl", backend="jax", delta=1.0)
+    sem_np = create_semantics("ctstl", backend="numpy", delta=1.0)
 
     rho_jax = float(phi.evaluate(signal_jax, sem_jax, t=0))
     rho_np = float(phi.evaluate(signal_np, sem_np, t=0))
@@ -115,8 +110,8 @@ def test_jax_dgmsr_matches_numpy_backend_with_weights(
         weights_pair=(1.0, 1.3),
     )
 
-    sem_jax = create_semantics("jax_dgmsr", eps=1e-8, p=1)
-    sem_np = create_semantics("dgmsr", eps=1e-8, p=1)
+    sem_jax = create_semantics("dgmsr", backend="jax", eps=1e-8, p=1)
+    sem_np = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=1)
 
     v_and_jax = float(phi_and.evaluate(signal_jax, sem_jax, t=0))
     v_and_np = float(phi_and.evaluate(signal_np, sem_np, t=0))
@@ -127,51 +122,28 @@ def test_jax_dgmsr_matches_numpy_backend_with_weights(
     assert v_until_jax == pytest.approx(v_until_np, abs=1e-6)
 
 
-def test_jax_stljax_matches_numpy_stljax_backend(
-    signal_np: np.ndarray, signal_jax: jax.Array, predicates
-) -> None:
-    p1, p2 = predicates
-    formulas = [
-        (p1 | ~p2).eventually((0, 3)),
-        p1.until(p2, interval=(0, 3)),
-    ]
-
-    sem_jax = create_semantics("jax_stljax", approx_method="true", temperature=None)
-    sem_np = create_semantics("stljax", approx_method="true", temperature=None)
-
-    for phi in formulas:
-        v_jax = float(phi.evaluate(signal_jax, sem_jax, t=0))
-        v_np = float(phi.evaluate(signal_np, sem_np, t=0))
-        assert v_jax == pytest.approx(v_np, abs=1e-6)
-
-
 def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> None:
     p1, p2 = predicates
 
     checks = [
         (
-            create_semantics("jax", smooth=True, temperature=0.2),
+            create_semantics("classical", backend="jax"),
             (p1 & p2).always((0, 2)),
             lambda v: v,
         ),
         (
-            create_semantics("jax_cumulative"),
+            create_semantics("cumulative", backend="jax"),
             p1.eventually((0, 2)),
             lambda v: v.pos,
         ),
         (
-            create_semantics("jax_ctstl", delta=1.0),
+            create_semantics("ctstl", backend="jax", delta=1.0),
             p1.until(p2, interval=(0, 3)),
             lambda v: v,
         ),
         (
-            create_semantics("jax_dgmsr", eps=1e-8, p=1),
+            create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
-            lambda v: v,
-        ),
-        (
-            create_semantics("jax_stljax", approx_method="true", temperature=None),
-            p1.eventually((0, 2)),
             lambda v: v,
         ),
     ]
@@ -187,8 +159,3 @@ def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> Non
         grad = np.asarray(jax.grad(objective)(signal_jax))
         assert grad.shape == signal_jax.shape
         assert np.all(np.isfinite(grad))
-
-
-def test_jax_semantics_rejects_non_positive_temperature() -> None:
-    with pytest.raises(ValueError):
-        create_semantics("jax", smooth=True, temperature=0.0)
