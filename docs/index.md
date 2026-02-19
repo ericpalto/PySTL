@@ -30,7 +30,7 @@ p1 = Predicate("speed_ok", fn=lambda s, t: 0.6 - s[t, 0])
 p2 = Predicate("alt_ok", fn=lambda s, t: s[t, 1] - 0.2)
 
 phi = (p1 & p2).always(Interval(0, 2))
-sem = create_semantics("classic")
+sem = create_semantics("classical", backend="numpy")
 rho = phi.evaluate(signal, sem, t=0)
 print(rho)
 ```

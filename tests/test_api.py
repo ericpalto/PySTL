@@ -31,17 +31,18 @@ def predicates():
 
 def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
-    assert "classic" in names
-    assert "cumulative" in names
-    assert "ctstl" in names
-    assert "dgmsr" in names
-    assert "stljax" in names
-    assert "jax" in names
-    assert "jax_classic" in names
-    assert "jax_cumulative" in names
-    assert "jax_ctstl" in names
-    assert "jax_dgmsr" in names
-    assert "jax_stljax" in names
+    assert names == {
+        "classical/numpy",
+        "classical/jax",
+        "cumulative/numpy",
+        "cumulative/jax",
+        "ctstl/numpy",
+        "ctstl/jax",
+        "dgmsr/numpy",
+        "dgmsr/jax",
+    }
+    assert registry.syntaxes() == ["classical", "ctstl", "cumulative", "dgmsr"]
+    assert registry.backends() == ["jax", "numpy"]
 
 
 def test_boolean_and_temporal_always_with_classic_semantics(
@@ -49,7 +50,7 @@ def test_boolean_and_temporal_always_with_classic_semantics(
 ) -> None:
     p1, p2 = predicates
     phi = (p1 & p2).always(Interval(0, 2))
-    sem = create_semantics("classic")
+    sem = create_semantics("classical")
     rho = phi.evaluate(signal, sem, t=0)
 
     vals = [min(0.6 - signal[t, 0], signal[t, 1] - 0.2) for t in [0, 1, 2]]
@@ -60,7 +61,7 @@ def test_boolean_and_temporal_always_with_classic_semantics(
 def test_eventually_with_classic_semantics(signal: np.ndarray, predicates) -> None:
     p1, _ = predicates
     phi = p1.eventually((1, 3))
-    sem = create_semantics("classic")
+    sem = create_semantics("classical")
     rho = phi.evaluate(signal, sem, t=0)
     expected = max(0.6 - signal[t, 0] for t in [1, 2, 3])
     assert rho == pytest.approx(expected, abs=1e-12)
@@ -69,7 +70,7 @@ def test_eventually_with_classic_semantics(signal: np.ndarray, predicates) -> No
 def test_until_with_classic_semantics(signal: np.ndarray, predicates) -> None:
     p1, p2 = predicates
     phi = p1.until(p2, interval=(0, 3))
-    sem = create_semantics("classic")
+    sem = create_semantics("classical")
     rho = phi.evaluate(signal, sem, t=0)
 
     p1_trace = np.array(
@@ -90,17 +91,23 @@ def test_interval_validation() -> None:
         Interval(3, 2)
 
 
+def test_unknown_syntax_or_backend_raises() -> None:
+    with pytest.raises(KeyError):
+        create_semantics("stljax")
+    with pytest.raises(KeyError):
+        create_semantics("classic")
+    with pytest.raises(KeyError):
+        create_semantics("traditional")
+    with pytest.raises(KeyError):
+        create_semantics("classical", backend="torch")
+
+
 def test_empty_window_raises(signal: np.ndarray, predicates) -> None:
     p1, _ = predicates
     phi = p1.always((2, 3))
-    sem = create_semantics("classic")
+    sem = create_semantics("classical")
     with pytest.raises(ValueError):
         phi.evaluate(signal[:2], sem, t=1)
-
-
-def test_traditional_alias_removed() -> None:
-    with pytest.raises(KeyError):
-        create_semantics("traditional")
 
 
 def test_cumulative_semantics_until(signal: np.ndarray, predicates) -> None:
@@ -147,7 +154,7 @@ def test_ctstl_until_uses_exclusive_left_prefix(signal: np.ndarray, predicates) 
     phi = p1.until(p2, interval=(0, 3))
 
     sem_ctstl = create_semantics("ctstl")
-    sem_classic = create_semantics("classic")
+    sem_classic = create_semantics("classical")
     rho_ctstl = phi.evaluate(signal, sem_ctstl, t=0)
     rho_classic = phi.evaluate(signal, sem_classic, t=0)
 
