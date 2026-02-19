@@ -1,4 +1,4 @@
-name: Pages
+name: Pages PR
 
 on:
   pull_request:
