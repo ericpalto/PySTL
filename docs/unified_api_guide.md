@@ -11,15 +11,18 @@ The STL API is now split into two independent choices:
 
 Use `create_semantics(syntax, backend=...)`.
 
-## Installation Modes (`uv`)
+## Installation (`uv`)
 
 ```bash
-# NumPy-only install
-uv sync --dev
+# Regular install, NumPy-only
+uv sync
 
-# NumPy + JAX install
-uv sync --dev --extra jax
+# Regular install, NumPy + JAX
+uv sync --extra jax
 ```
+
+For development setup and contribution guidelines, see the
+[`Contributing` section in the README](../README.md#contributing).
 
 ## Quick Start
 

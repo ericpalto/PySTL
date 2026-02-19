@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: [numpy, jax]
+        profile: [regular, dev]
 
     steps:
       - name: Checkout
@@ -28,13 +29,21 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install dependencies (NumPy mode)
-        if: matrix.mode == 'numpy'
-        run: uv sync --dev
-
-      - name: Install dependencies (JAX mode)
-        if: matrix.mode == 'jax'
-        run: uv sync --dev --extra jax
+      - name: Install dependencies
+        run: |
+          if [ "${{ matrix.profile }}" = "dev" ]; then
+            if [ "${{ matrix.mode }}" = "jax" ]; then
+              uv sync --dev --extra jax
+            else
+              uv sync --dev
+            fi
+          else
+            if [ "${{ matrix.mode }}" = "jax" ]; then
+              uv sync --extra jax
+            else
+              uv sync
+            fi
+          fi
 
       - name: Verify backend availability
         run: |
@@ -44,5 +53,24 @@ jobs:
             uv run python -c "from stl import registry; assert registry.backends() == ['numpy']"
           fi
 
-      - name: Run tests
+      - name: Verify dev tools availability
+        run: |
+          if [ "${{ matrix.profile }}" = "dev" ]; then
+            uv run python -c "import pytest; import pre_commit"
+          else
+            uv run python -c "import importlib.util; assert importlib.util.find_spec('pytest') is None"
+            uv run python -c "import importlib.util; assert importlib.util.find_spec('pre_commit') is None"
+          fi
+
+      - name: Run tests (dev profile)
+        if: matrix.profile == 'dev'
         run: uv run pytest -q
+
+      - name: Run smoke test (regular profile)
+        if: matrix.profile == 'regular'
+        run: |
+          if [ "${{ matrix.mode }}" = "jax" ]; then
+            uv run python -c "import jax.numpy as jnp; from stl import Predicate, create_semantics; s = jnp.asarray([[0.1], [0.2]]); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='jax'); float(p.evaluate(s, sem, t=0))"
+          else
+            uv run python -c "import numpy as np; from stl import Predicate, create_semantics; s = np.asarray([[0.1], [0.2]], dtype=float); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='numpy'); float(p.evaluate(s, sem, t=0))"
+          fi
