@@ -26,11 +26,11 @@ Supported syntax/backend combinations:
 Using [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (recommended):
 
 ```bash
-# NumPy-only install (default)
-uv sync --dev
+# Regular install, NumPy-only
+uv sync
 
-# NumPy + JAX install
-uv sync --dev --extra jax
+# Regular install, NumPy + JAX
+uv sync --extra jax
 ```
 
 Using `pip`:
@@ -44,6 +44,29 @@ pip install -e .
 # NumPy + JAX install
 pip install -e ".[jax]"
 ```
+
+## Contributing
+
+Everyone is welcome to contribute.
+Development install using `uv`:
+
+```bash
+# Dev install (adds pytest + pre-commit), NumPy-only
+uv sync --dev
+pre-commit install
+
+# Dev install (adds pytest + pre-commit), NumPy + JAX
+uv sync --dev --extra jax
+pre-commit install
+```
+
+Instructions:
+
+1. Create a feature branch for your change.
+2. Implement the change with tests and docs updates when relevant.
+3. Run checks locally (`uv run pytest`).
+4. Linter should run automatically on commit.
+5. Open a pull request.
 
 ## Quick Start
 
