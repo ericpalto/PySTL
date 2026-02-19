@@ -123,10 +123,6 @@ class JaxClassicRobustSemantics(_JaxHardMinMaxSemantics):
     """Classic STL max-min robustness implemented in JAX."""
 
 
-class JaxTraditionalRobustSemantics(JaxClassicRobustSemantics):
-    """Traditional STL robustness implemented in JAX."""
-
-
 class JaxRobustSemantics(JaxClassicRobustSemantics):
     """Compatibility backend: JAX robustness with optional smooth min/max.
 
@@ -573,7 +569,6 @@ class JaxStlJaxSemantics(Semantics[Any]):
 
 __all__ = [
     "JaxClassicRobustSemantics",
-    "JaxTraditionalRobustSemantics",
     "JaxRobustSemantics",
     "JaxCumulativeRobustness",
     "JaxCumulativeSemantics",
