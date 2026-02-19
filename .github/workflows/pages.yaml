@@ -24,8 +24,8 @@ jobs:
         with:
           ruby-version: "3.3"
 
-      - name: Install Jekyll
-        run: gem install jekyll -v 3.10.0
+      - name: Install Jekyll dependencies
+        run: gem install jekyll -v 3.10.0 kramdown-parser-gfm
 
       - name: Build docs with Jekyll (no Pages API)
         run: jekyll build --safe --source ./docs --destination ./_site
