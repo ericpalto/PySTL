@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import jax
 import numpy as np
 import pytest
-import jax.numpy as jnp
-
 from stl import And, Interval, Predicate, create_semantics
+
+jax = pytest.importorskip("jax")
+jnp = pytest.importorskip("jax.numpy")
 
 # pylint: disable=redefined-outer-name
 

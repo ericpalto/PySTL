@@ -7,9 +7,19 @@ description: How to create STL formulas and choose syntax/backend
 
 The STL API is now split into two independent choices:
 - `syntax`: `classical`, `cumulative`, `ctstl`, `dgmsr`
-- `backend`: `numpy` or `jax`
+- `backend`: `numpy` (always) and `jax` (when installed with the `jax` extra)
 
 Use `create_semantics(syntax, backend=...)`.
+
+## Installation Modes (`uv`)
+
+```bash
+# NumPy-only install
+uv sync --dev
+
+# NumPy + JAX install
+uv sync --dev --extra jax
+```
 
 ## Quick Start
 
@@ -42,9 +52,9 @@ print(rho0)
 from stl import registry
 
 print(registry.syntaxes())  # ['classical', 'ctstl', 'cumulative', 'dgmsr']
-print(registry.backends())  # ['jax', 'numpy']
+print(registry.backends())  # ['numpy'] or ['jax', 'numpy']
 print(registry.names())
-# ['classical/jax', 'classical/numpy', 'ctstl/jax', ...]
+# Includes JAX entries when installed with `--extra jax`
 ```
 
 ## Formula Construction
@@ -114,6 +124,7 @@ grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(signal_jax)
 ## Common Errors
 
 - Unknown syntax/backend: `KeyError`
+- Requesting `backend="jax"` without JAX extra installed: `ImportError`
 - Empty temporal window (`always`/`eventually`): `ValueError`
 - `until` with empty trace window: `ValueError`
 - Missing `Predicate.fn`: `ValueError`
