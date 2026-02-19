@@ -31,18 +31,24 @@ def predicates():
 
 def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
-    assert names == {
+    expected_numpy = {
         "classical/numpy",
-        "classical/jax",
         "cumulative/numpy",
-        "cumulative/jax",
         "ctstl/numpy",
-        "ctstl/jax",
         "dgmsr/numpy",
-        "dgmsr/jax",
     }
+    assert expected_numpy.issubset(names)
+    if "jax" in registry.backends():
+        assert names == expected_numpy | {
+            "classical/jax",
+            "cumulative/jax",
+            "ctstl/jax",
+            "dgmsr/jax",
+        }
+    else:
+        assert names == expected_numpy
     assert registry.syntaxes() == ["classical", "ctstl", "cumulative", "dgmsr"]
-    assert registry.backends() == ["jax", "numpy"]
+    assert registry.backends() in (["jax", "numpy"], ["numpy"])
 
 
 def test_boolean_and_temporal_always_with_classic_semantics(

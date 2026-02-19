@@ -3,19 +3,12 @@ from .api import Or, And, Not, Until, Always, Formula, Interval, Predicate, Even
 from .semantics import (
     CtstlSemantics,
     DgmsrSemantics,
-    JaxCtstlSemantics,
-    JaxDgmsrSemantics,
     CumulativeSemantics,
     CumulativeRobustness,
     ClassicRobustSemantics,
-    JaxCumulativeSemantics,
-    JaxCumulativeRobustness,
-    JaxClassicRobustSemantics,
     registry,
     tau_to_k,
     kth_largest,
-    jax_tau_to_k,
-    jax_kth_largest,
     create_semantics,
 )
 
@@ -36,14 +29,32 @@ __all__ = [
     "kth_largest",
     "tau_to_k",
     "DgmsrSemantics",
-    "JaxClassicRobustSemantics",
-    "JaxCumulativeRobustness",
-    "JaxCumulativeSemantics",
-    "jax_kth_largest",
-    "jax_tau_to_k",
-    "JaxCtstlSemantics",
-    "JaxDgmsrSemantics",
     "create_semantics",
     "registry",
     "dgmsr",
 ]
+
+try:
+    from .semantics import (
+        JaxCtstlSemantics,
+        JaxDgmsrSemantics,
+        JaxCumulativeSemantics,
+        JaxCumulativeRobustness,
+        JaxClassicRobustSemantics,
+        jax_tau_to_k,
+        jax_kth_largest,
+    )
+except ImportError:
+    pass
+else:
+    __all__.extend(
+        [
+            "JaxClassicRobustSemantics",
+            "JaxCumulativeRobustness",
+            "JaxCumulativeSemantics",
+            "jax_kth_largest",
+            "jax_tau_to_k",
+            "JaxCtstlSemantics",
+            "JaxDgmsrSemantics",
+        ]
+    )

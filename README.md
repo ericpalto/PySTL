@@ -26,15 +26,23 @@ Supported syntax/backend combinations:
 Using [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (recommended):
 
 ```bash
+# NumPy-only install (default)
 uv sync --dev
+
+# NumPy + JAX install
+uv sync --dev --extra jax
 ```
 
 Using `pip`:
 
 ```bash
+# NumPy-only install (default)
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
+
+# NumPy + JAX install
+pip install -e ".[jax]"
 ```
 
 ## Quick Start
