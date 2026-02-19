@@ -8,7 +8,6 @@ from stl.jax import (
     JaxCumulativeSemantics,
     JaxCumulativeRobustness,
     JaxClassicRobustSemantics,
-    JaxTraditionalRobustSemantics,
     jax_tau_to_k,
     jax_kth_largest,
 )
@@ -23,18 +22,15 @@ from stl.semantics.stljax import (
 from stl.semantics.classic import ClassicRobustSemantics
 from stl.semantics.registry import SemanticsRegistry
 from stl.semantics.cumulative import CumulativeSemantics, CumulativeRobustness
-from stl.semantics.traditional import TraditionalRobustSemantics
 
 registry = SemanticsRegistry()
 registry.register("classic", ClassicRobustSemantics)
-registry.register("traditional", TraditionalRobustSemantics)
 registry.register("cumulative", CumulativeSemantics)
 registry.register("ctstl", CtstlSemantics)
 registry.register("dgmsr", DgmsrSemantics)
 registry.register("stljax", StlJaxSemantics)
 registry.register("jax", JaxRobustSemantics)
 registry.register("jax_classic", JaxClassicRobustSemantics)
-registry.register("jax_traditional", JaxTraditionalRobustSemantics)
 registry.register("jax_cumulative", JaxCumulativeSemantics)
 registry.register("jax_ctstl", JaxCtstlSemantics)
 registry.register("jax_dgmsr", JaxDgmsrSemantics)
@@ -48,7 +44,6 @@ def create_semantics(name: str, **kwargs):
 __all__ = [
     "Semantics",
     "ClassicRobustSemantics",
-    "TraditionalRobustSemantics",
     "CumulativeSemantics",
     "CumulativeRobustness",
     "CtstlSemantics",
@@ -56,7 +51,6 @@ __all__ = [
     "tau_to_k",
     "DgmsrSemantics",
     "JaxClassicRobustSemantics",
-    "JaxTraditionalRobustSemantics",
     "JaxRobustSemantics",
     "JaxCumulativeRobustness",
     "JaxCumulativeSemantics",

@@ -8,14 +8,12 @@ from stl.jax.semantics import (
     JaxCumulativeSemantics,
     JaxCumulativeRobustness,
     JaxClassicRobustSemantics,
-    JaxTraditionalRobustSemantics,
     jax_tau_to_k,
     jax_kth_largest,
 )
 
 __all__ = [
     "JaxClassicRobustSemantics",
-    "JaxTraditionalRobustSemantics",
     "JaxRobustSemantics",
     "JaxCumulativeRobustness",
     "JaxCumulativeSemantics",

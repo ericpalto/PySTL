@@ -55,13 +55,11 @@ Notes:
 
 Available names:
 - `classic`
-- `traditional`
 - `cumulative`
 - `ctstl`
 - `dgmsr`
 - `jax`
 - `jax_classic`
-- `jax_traditional`
 - `jax_cumulative`
 - `jax_ctstl`
 - `jax_dgmsr`
@@ -78,7 +76,6 @@ print(registry.names())
 ### Which One Should You Use?
 
 - `classic`: standard hard max-min robustness. Use as baseline/reference.
-- `traditional`: same hard robustness as classic, with explicit traditional naming.
 - `cumulative`: returns positive/negative cumulative robustness (`rho+`, `rho-`).
 - `ctstl`: CT-STL quantitative semantics (`until` as in `ctstl.py`) and cumulative-time helper `C^tau`.
 - `dgmsr`: smooth/differentiable semantics with optional weights.
@@ -95,7 +92,7 @@ print(registry.names())
 | D-GMSR Robustness | Yes | Mostly yes (except boundary points) | Reformulates `min`/`max` with structured generalized means; smooth while preserving sign semantics. | Uzun, S., et al. (2024). *Discrete Generalized Mean Smooth Robustness (D-GMSR) for Signal Temporal Logic*. [arXiv:2405.10996](https://arxiv.org/abs/2405.10996) |
 
 Backend mapping in this repo:
-- Classical: `classic`, `traditional`, `jax_classic`, `jax_traditional`
+- Classical: `classic`, `jax_classic`
 - Smooth soft variants: `stljax`, `jax_stljax`, and `jax` with `smooth=True`
 - Cumulative: `cumulative`, `jax_cumulative`
 - CT-STL: `ctstl`, `jax_ctstl`
@@ -103,20 +100,17 @@ Backend mapping in this repo:
 
 ### Return Types
 
-- `classic`, `traditional`, `ctstl`, `dgmsr`, `stljax`: return `float`
+- `classic`, `ctstl`, `dgmsr`, `stljax`: return `float`
 - `jax`: returns a scalar `jax.Array`
 - `cumulative`: returns `CumulativeRobustness(pos: float, neg: float)`
 
 ## Semantics Usage Examples
 
-### 1) Classic / Traditional
+### 1) Classic
 
 ```python
 sem_classic = create_semantics("classic")
-sem_traditional = create_semantics("traditional")
-
 rho_classic = phi.evaluate(signal, sem_classic, t=0)
-rho_traditional = phi.evaluate(signal, sem_traditional, t=0)
 ```
 
 ### 2) Cumulative
@@ -169,7 +163,6 @@ grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(jnp.asarray(signal))
 
 Other JAX-native semantics:
 - `create_semantics("jax_classic")`
-- `create_semantics("jax_traditional")`
 - `create_semantics("jax_cumulative")`
 - `create_semantics("jax_ctstl", delta=1.0)`
 - `create_semantics("jax_dgmsr", eps=1e-8, p=1)`
@@ -179,10 +172,10 @@ Other JAX-native semantics:
 
 - `dgmsr`: supports weights in Boolean/temporal aggregations.
 - `jax_dgmsr`: supports weights in Boolean/temporal aggregations.
-- `jax`, `jax_classic`, `jax_traditional`, `jax_cumulative`, `jax_ctstl`: currently ignore explicit weights.
+- `jax`, `jax_classic`, `jax_cumulative`, `jax_ctstl`: currently ignore explicit weights.
 - `jax_stljax`: rejects explicit weights (`ValueError`).
 - `stljax`: rejects explicit weights (`ValueError`).
-- `classic`, `traditional`, `cumulative`, `ctstl`: currently do not use weights (treated as unweighted).
+- `classic`, `cumulative`, `ctstl`: currently do not use weights (treated as unweighted).
 
 ## Common Errors
 
@@ -198,7 +191,6 @@ Other JAX-native semantics:
 ## Practical Recommendation
 
 Start with `classic` for correctness checks, then switch to:
-- `traditional` if you want explicit traditional naming
 - `cumulative` for `rho+` / `rho-`
 - `ctstl` for `C^tau`-style robustness workflows
 - `dgmsr` or `stljax` when you need smooth/approximate behavior
