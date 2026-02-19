@@ -59,6 +59,13 @@ Available names:
 - `cumulative`
 - `ctstl`
 - `dgmsr`
+- `jax`
+- `jax_classic`
+- `jax_traditional`
+- `jax_cumulative`
+- `jax_ctstl`
+- `jax_dgmsr`
+- `jax_stljax`
 - `stljax`
 
 You can list them at runtime:
@@ -77,9 +84,27 @@ print(registry.names())
 - `dgmsr`: smooth/differentiable semantics with optional weights.
 - `stljax`: stljax-compatible backend (hard or approximate min/max depending on stljax settings).
 
+### Semantics Comparison (Optimization View)
+
+| STL Semantic | Sound (Sign-Preserving)? | Smooth | What Makes It Special | Citation |
+| --- | --- | --- | --- | --- |
+| Classical (Space) Robustness | Yes | No | Uses `min`/`max` and `inf`/`sup` style operators to compute signed distance to violation (worst-case semantics). | Donze, A., & Maler, O. (2010). *Robust Satisfaction of Temporal Logic over Real-Valued Signals*. In Formal Modeling and Analysis of Timed Systems (FORMATS). [doi:10.1007/978-3-642-15297-9_9](https://doi.org/10.1007/978-3-642-15297-9_9) |
+| Smooth (Log-Sum-Exp / Soft) Robustness | Not guaranteed (depends on parameter regime) | Yes | Replaces hard `min`/`max` with smooth approximations for gradient-based learning. | Leung K, Arechiga N, Pavone M. *Backpropagation through signal temporal logic specifications: Infusing logical structure into gradient-based methods*. The International Journal of Robotics Research. 2022;42(6):356-370. [doi:10.1177/02783649221082115](https://doi.org/10.1177/02783649221082115) |
+| Cumulative Robustness | No (redefines satisfaction) | Usually no (piecewise) | Integrates robustness over time instead of only worst-case aggregation; captures sustained behavior. | Haghighi, I., Mehdipour, N., Bartocci, E., & Belta, C. (2019). *Control from Signal Temporal Logic Specifications with Smooth Cumulative Quantitative Semantics*. IEEE Control Systems Letters. [arXiv:1904.11611](https://arxiv.org/abs/1904.11611) |
+| Sound Cumulative (CT-STL) | Yes | No (operator-level kinks) | Adds cumulative-time semantics with sound/complete qualitative correspondence in the CT-STL setting. | Chen, H., Zhang, Z., Roy, S., Bartocci, E., Smolka, S. A., Stoller, S. D., & Lin, S. (2025). *Cumulative-Time Signal Temporal Logic*. [arXiv:2504.10325](https://arxiv.org/abs/2504.10325) |
+| D-GMSR Robustness | Yes | Mostly yes (except boundary points) | Reformulates `min`/`max` with structured generalized means; smooth while preserving sign semantics. | Uzun, S., et al. (2024). *Discrete Generalized Mean Smooth Robustness (D-GMSR) for Signal Temporal Logic*. [arXiv:2405.10996](https://arxiv.org/abs/2405.10996) |
+
+Backend mapping in this repo:
+- Classical: `classic`, `traditional`, `jax_classic`, `jax_traditional`
+- Smooth soft variants: `stljax`, `jax_stljax`, and `jax` with `smooth=True`
+- Cumulative: `cumulative`, `jax_cumulative`
+- CT-STL: `ctstl`, `jax_ctstl`
+- D-GMSR: `dgmsr`, `jax_dgmsr`
+
 ### Return Types
 
 - `classic`, `traditional`, `ctstl`, `dgmsr`, `stljax`: return `float`
+- `jax`: returns a scalar `jax.Array`
 - `cumulative`: returns `CumulativeRobustness(pos: float, neg: float)`
 
 ## Semantics Usage Examples
@@ -131,9 +156,31 @@ sem_stljax = create_semantics("stljax", approx_method="true", temperature=None)
 rho = phi.evaluate(signal, sem_stljax, t=0)
 ```
 
+### 6) jax (autograd)
+
+```python
+import jax
+import jax.numpy as jnp
+
+sem_jax = create_semantics("jax", smooth=False)
+rho = phi.evaluate(jnp.asarray(signal), sem_jax, t=0)
+grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(jnp.asarray(signal))
+```
+
+Other JAX-native semantics:
+- `create_semantics("jax_classic")`
+- `create_semantics("jax_traditional")`
+- `create_semantics("jax_cumulative")`
+- `create_semantics("jax_ctstl", delta=1.0)`
+- `create_semantics("jax_dgmsr", eps=1e-8, p=1)`
+- `create_semantics("jax_stljax", approx_method="true", temperature=None)`
+
 ## Weights Support Summary
 
 - `dgmsr`: supports weights in Boolean/temporal aggregations.
+- `jax_dgmsr`: supports weights in Boolean/temporal aggregations.
+- `jax`, `jax_classic`, `jax_traditional`, `jax_cumulative`, `jax_ctstl`: currently ignore explicit weights.
+- `jax_stljax`: rejects explicit weights (`ValueError`).
 - `stljax`: rejects explicit weights (`ValueError`).
 - `classic`, `traditional`, `cumulative`, `ctstl`: currently do not use weights (treated as unweighted).
 
