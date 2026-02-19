@@ -3,8 +3,6 @@ from __future__ import annotations
 from stl.jax import (
     JaxCtstlSemantics,
     JaxDgmsrSemantics,
-    JaxRobustSemantics,
-    JaxStlJaxSemantics,
     JaxCumulativeSemantics,
     JaxCumulativeRobustness,
     JaxClassicRobustSemantics,
@@ -14,31 +12,56 @@ from stl.jax import (
 from stl.semantics.base import Semantics
 from stl.semantics.ctstl import CtstlSemantics, tau_to_k, kth_largest
 from stl.semantics.dgmsr import DgmsrSemantics
-from stl.semantics.stljax import (
-    StlJaxSemantics,
-    StlJaxFormulaWrapper,
-    to_stljax_formula,
-)
 from stl.semantics.classic import ClassicRobustSemantics
 from stl.semantics.registry import SemanticsRegistry
 from stl.semantics.cumulative import CumulativeSemantics, CumulativeRobustness
 
 registry = SemanticsRegistry()
-registry.register("classic", ClassicRobustSemantics)
-registry.register("cumulative", CumulativeSemantics)
-registry.register("ctstl", CtstlSemantics)
-registry.register("dgmsr", DgmsrSemantics)
-registry.register("stljax", StlJaxSemantics)
-registry.register("jax", JaxRobustSemantics)
-registry.register("jax_classic", JaxClassicRobustSemantics)
-registry.register("jax_cumulative", JaxCumulativeSemantics)
-registry.register("jax_ctstl", JaxCtstlSemantics)
-registry.register("jax_dgmsr", JaxDgmsrSemantics)
-registry.register("jax_stljax", JaxStlJaxSemantics)
+registry.register(syntax="classical", backend="numpy", factory=ClassicRobustSemantics)
+registry.register(syntax="classical", backend="jax", factory=JaxClassicRobustSemantics)
+registry.register(syntax="cumulative", backend="numpy", factory=CumulativeSemantics)
+registry.register(syntax="cumulative", backend="jax", factory=JaxCumulativeSemantics)
+registry.register(syntax="ctstl", backend="numpy", factory=CtstlSemantics)
+registry.register(syntax="ctstl", backend="jax", factory=JaxCtstlSemantics)
+registry.register(syntax="dgmsr", backend="numpy", factory=DgmsrSemantics)
+registry.register(syntax="dgmsr", backend="jax", factory=JaxDgmsrSemantics)
+
+_SYNTAX_ALIASES = {
+    "classical": "classical",
+    "cumulative": "cumulative",
+    "ctstl": "ctstl",
+    "dgmsr": "dgmsr",
+}
+_BACKEND_ALIASES = {
+    "numpy": "numpy",
+    "np": "numpy",
+    "python": "numpy",
+    "jax": "jax",
+}
 
 
-def create_semantics(name: str, **kwargs):
-    return registry.create(name, **kwargs)
+def _normalize_syntax(syntax: str) -> str:
+    key = syntax.strip().lower().replace("-", "_")
+    if key not in _SYNTAX_ALIASES:
+        raise KeyError(f"Unknown syntax '{syntax}'. Available: {registry.syntaxes()}")
+    return _SYNTAX_ALIASES[key]
+
+
+def _normalize_backend(backend: str) -> str:
+    key = backend.strip().lower().replace("-", "_")
+    if key not in _BACKEND_ALIASES:
+        raise KeyError(f"Unknown backend '{backend}'. Available: {registry.backends()}")
+    return _BACKEND_ALIASES[key]
+
+
+def create_semantics(syntax: str, *, backend: str = "numpy", **kwargs):
+    normalized_syntax = _normalize_syntax(syntax)
+    normalized_backend = _normalize_backend(backend)
+    return registry.create(
+        syntax=normalized_syntax,
+        backend=normalized_backend,
+        **kwargs,
+    )
 
 
 __all__ = [
@@ -51,17 +74,12 @@ __all__ = [
     "tau_to_k",
     "DgmsrSemantics",
     "JaxClassicRobustSemantics",
-    "JaxRobustSemantics",
     "JaxCumulativeRobustness",
     "JaxCumulativeSemantics",
     "jax_kth_largest",
     "jax_tau_to_k",
     "JaxCtstlSemantics",
     "JaxDgmsrSemantics",
-    "JaxStlJaxSemantics",
-    "StlJaxSemantics",
-    "StlJaxFormulaWrapper",
-    "to_stljax_formula",
     "SemanticsRegistry",
     "registry",
     "create_semantics",

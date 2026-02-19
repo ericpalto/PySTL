@@ -1,14 +1,15 @@
 ---
 title: Unified API Guide
-description: How to create STL formulas and choose a semantics backend
+description: How to create STL formulas and choose syntax/backend
 ---
 
-# Unified API Guide: Formulas and Semantics
+# Unified API Guide: Syntax + Backend Split
 
-This guide explains how to:
-- build STL formulas with the unified API
-- choose a semantics backend
-- evaluate formulas consistently across backends
+The STL API is now split into two independent choices:
+- `syntax`: `classical`, `cumulative`, `ctstl`, `dgmsr`
+- `backend`: `numpy` or `jax`
+
+Use `create_semantics(syntax, backend=...)`.
 
 ## Quick Start
 
@@ -30,167 +31,89 @@ p_speed_ok = Predicate("speed_ok", fn=lambda s, t: 0.6 - s[t, 0])
 p_alt_ok = Predicate("alt_ok", fn=lambda s, t: s[t, 1] - 0.2)
 
 phi = (p_speed_ok & p_alt_ok).always(Interval(0, 2))
-sem = create_semantics("classic")
+sem = create_semantics("classical", backend="numpy")
 rho0 = phi.evaluate(signal, sem, t=0)
 print(rho0)
 ```
 
-## Creating Formulas
+## Available Options
 
-The API is in `stl/api.py`. Core classes:
+```python
+from stl import registry
+
+print(registry.syntaxes())  # ['classical', 'ctstl', 'cumulative', 'dgmsr']
+print(registry.backends())  # ['jax', 'numpy']
+print(registry.names())
+# ['classical/jax', 'classical/numpy', 'ctstl/jax', ...]
+```
+
+## Formula Construction
+
+Core API (from `stl/api.py`):
 - `Predicate(name, fn)`
 - Boolean: `~phi`, `phi1 & phi2`, `phi1 | phi2`
 - Temporal:
   - `phi.always((start, end))`
   - `phi.eventually((start, end))`
   - `phi1.until(phi2, interval=(start, end))`
-- `Interval(start, end)` is equivalent to `(start, end)`
+- `Interval(start, end)` is equivalent to tuple intervals
 
 Notes:
-- `end=None` means unbounded to the end of the sampled horizon.
-- Temporal windows are computed relative to evaluation time `t`.
-- `Predicate.fn` must be a callable `fn(signal, t) -> scalar`.
+- `end=None` means unbounded to horizon end.
+- Windows are relative to evaluation time `t`.
+- `Predicate.fn` must be `fn(signal, t) -> scalar`.
 
-## Choosing a Semantics Backend
+## Semantics Matrix
 
-Available names:
-- `classic`
-- `cumulative`
-- `ctstl`
-- `dgmsr`
-- `jax`
-- `jax_classic`
-- `jax_cumulative`
-- `jax_ctstl`
-- `jax_dgmsr`
-- `jax_stljax`
-- `stljax`
-
-You can list them at runtime:
+### Classical
 
 ```python
-from stl import registry
-print(registry.names())
+sem_np = create_semantics("classical", backend="numpy")
+sem_jax = create_semantics("classical", backend="jax")
 ```
 
-### Which One Should You Use?
-
-- `classic`: standard hard max-min robustness. Use as baseline/reference.
-- `cumulative`: returns positive/negative cumulative robustness (`rho+`, `rho-`).
-- `ctstl`: CT-STL quantitative semantics (`until` as in `ctstl.py`) and cumulative-time helper `C^tau`.
-- `dgmsr`: smooth/differentiable semantics with optional weights.
-- `stljax`: stljax-compatible backend (hard or approximate min/max depending on stljax settings).
-
-### Semantics Comparison (Optimization View)
-
-| STL Semantic | Sound (Sign-Preserving)? | Smooth | What Makes It Special | Citation |
-| --- | --- | --- | --- | --- |
-| Classical (Space) Robustness | Yes | No | Uses `min`/`max` and `inf`/`sup` style operators to compute signed distance to violation (worst-case semantics). | Donze, A., & Maler, O. (2010). *Robust Satisfaction of Temporal Logic over Real-Valued Signals*. In Formal Modeling and Analysis of Timed Systems (FORMATS). [doi:10.1007/978-3-642-15297-9_9](https://doi.org/10.1007/978-3-642-15297-9_9) |
-| Smooth (Log-Sum-Exp / Soft) Robustness | Not guaranteed (depends on parameter regime) | Yes | Replaces hard `min`/`max` with smooth approximations for gradient-based learning. | Leung K, Arechiga N, Pavone M. *Backpropagation through signal temporal logic specifications: Infusing logical structure into gradient-based methods*. The International Journal of Robotics Research. 2022;42(6):356-370. [doi:10.1177/02783649221082115](https://doi.org/10.1177/02783649221082115) |
-| Cumulative Robustness | No (redefines satisfaction) | Usually no (piecewise) | Integrates robustness over time instead of only worst-case aggregation; captures sustained behavior. | Haghighi, I., Mehdipour, N., Bartocci, E., & Belta, C. (2019). *Control from Signal Temporal Logic Specifications with Smooth Cumulative Quantitative Semantics*. IEEE Control Systems Letters. [arXiv:1904.11611](https://arxiv.org/abs/1904.11611) |
-| Sound Cumulative (CT-STL) | Yes | No (operator-level kinks) | Adds cumulative-time semantics with sound/complete qualitative correspondence in the CT-STL setting. | Chen, H., Zhang, Z., Roy, S., Bartocci, E., Smolka, S. A., Stoller, S. D., & Lin, S. (2025). *Cumulative-Time Signal Temporal Logic*. [arXiv:2504.10325](https://arxiv.org/abs/2504.10325) |
-| D-GMSR Robustness | Yes | Mostly yes (except boundary points) | Reformulates `min`/`max` with structured generalized means; smooth while preserving sign semantics. | Uzun, S., et al. (2024). *Discrete Generalized Mean Smooth Robustness (D-GMSR) for Signal Temporal Logic*. [arXiv:2405.10996](https://arxiv.org/abs/2405.10996) |
-
-Backend mapping in this repo:
-- Classical: `classic`, `jax_classic`
-- Smooth soft variants: `stljax`, `jax_stljax`, and `jax` with `smooth=True`
-- Cumulative: `cumulative`, `jax_cumulative`
-- CT-STL: `ctstl`, `jax_ctstl`
-- D-GMSR: `dgmsr`, `jax_dgmsr`
-
-### Return Types
-
-- `classic`, `ctstl`, `dgmsr`, `stljax`: return `float`
-- `jax`: returns a scalar `jax.Array`
-- `cumulative`: returns `CumulativeRobustness(pos: float, neg: float)`
-
-## Semantics Usage Examples
-
-### 1) Classic
+### Cumulative
 
 ```python
-sem_classic = create_semantics("classic")
-rho_classic = phi.evaluate(signal, sem_classic, t=0)
+sem_np = create_semantics("cumulative", backend="numpy")
+sem_jax = create_semantics("cumulative", backend="jax")
 ```
 
-### 2) Cumulative
+### CT-STL
 
 ```python
-sem_cum = create_semantics("cumulative")
-val = phi.evaluate(signal, sem_cum, t=0)
-print(val.pos, val.neg)
+sem_np = create_semantics("ctstl", backend="numpy", delta=1.0)
+sem_jax = create_semantics("ctstl", backend="jax", delta=1.0)
 ```
 
-### 3) CT-STL
+### DGMSR
 
 ```python
-sem_ctstl = create_semantics("ctstl", delta=1.0)
-rho_until = p_speed_ok.until(p_alt_ok, interval=(0, 3)).evaluate(signal, sem_ctstl, t=0)
-
-# CT cumulative-time robustness C^tau over a sampled window:
-window_vals = [p_speed_ok.evaluate(signal, sem_ctstl, t=i) for i in [0, 1, 2, 3]]
-rho_c_tau = sem_ctstl.temporal_cumulative(window_vals, tau=2.0)
-print(rho_until, rho_c_tau)
+sem_np = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
+sem_jax = create_semantics("dgmsr", backend="jax", eps=1e-8, p=2)
 ```
 
-### 4) D-GMSR (weighted smooth robustness)
+## Return Types
 
-```python
-from stl import And
+- `classical`, `ctstl`, `dgmsr`: scalar robustness (`float` for NumPy backend, scalar `jax.Array` for JAX backend)
+- `cumulative`: robustness container with `.pos` and `.neg`
 
-sem_dgmsr = create_semantics("dgmsr", eps=1e-8, p=2)
-phi_weighted = And(p_speed_ok, p_alt_ok, weights=[1.0, 2.0])
-rho = phi_weighted.evaluate(signal, sem_dgmsr, t=0)
-```
-
-### 5) stljax
-
-```python
-sem_stljax = create_semantics("stljax", approx_method="true", temperature=None)
-rho = phi.evaluate(signal, sem_stljax, t=0)
-```
-
-### 6) jax (autograd)
+## JAX Gradients
 
 ```python
 import jax
 import jax.numpy as jnp
 
-sem_jax = create_semantics("jax", smooth=False)
-rho = phi.evaluate(jnp.asarray(signal), sem_jax, t=0)
-grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(jnp.asarray(signal))
+signal_jax = jnp.asarray(signal)
+sem_jax = create_semantics("classical", backend="jax")
+
+rho = phi.evaluate(signal_jax, sem_jax, t=0)
+grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(signal_jax)
 ```
-
-Other JAX-native semantics:
-- `create_semantics("jax_classic")`
-- `create_semantics("jax_cumulative")`
-- `create_semantics("jax_ctstl", delta=1.0)`
-- `create_semantics("jax_dgmsr", eps=1e-8, p=1)`
-- `create_semantics("jax_stljax", approx_method="true", temperature=None)`
-
-## Weights Support Summary
-
-- `dgmsr`: supports weights in Boolean/temporal aggregations.
-- `jax_dgmsr`: supports weights in Boolean/temporal aggregations.
-- `jax`, `jax_classic`, `jax_cumulative`, `jax_ctstl`: currently ignore explicit weights.
-- `jax_stljax`: rejects explicit weights (`ValueError`).
-- `stljax`: rejects explicit weights (`ValueError`).
-- `classic`, `cumulative`, `ctstl`: currently do not use weights (treated as unweighted).
 
 ## Common Errors
 
-- Empty temporal window:
-  - `ALWAYS` / `EVENTUALLY` raise `ValueError`.
-- `Until` with `t >= horizon`:
-  - raises `IndexError`.
-- Missing predicate function:
-  - raises `ValueError` in all backends.
-- Using weights with stljax:
-  - raises `ValueError`.
-
-## Practical Recommendation
-
-Start with `classic` for correctness checks, then switch to:
-- `cumulative` for `rho+` / `rho-`
-- `ctstl` for `C^tau`-style robustness workflows
-- `dgmsr` or `stljax` when you need smooth/approximate behavior
+- Unknown syntax/backend: `KeyError`
+- Empty temporal window (`always`/`eventually`): `ValueError`
+- `until` with empty trace window: `ValueError`
+- Missing `Predicate.fn`: `ValueError`
