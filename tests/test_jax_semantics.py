@@ -159,3 +159,92 @@ def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> Non
         grad = np.asarray(jax.grad(objective)(signal_jax))
         assert grad.shape == signal_jax.shape
         assert np.all(np.isfinite(grad))
+
+
+def test_jax_backends_are_jittable(signal_jax: jax.Array, predicates) -> None:
+    p1, p2 = predicates
+
+    checks = [
+        (
+            create_semantics("classical", backend="jax"),
+            (p1 & p2).always((0, 2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("cumulative", backend="jax"),
+            p1.eventually((0, 2)),
+            lambda v: v.pos,
+        ),
+        (
+            create_semantics("ctstl", backend="jax", delta=1.0),
+            p1.until(p2, interval=(0, 3)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
+            p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
+            lambda v: v,
+        ),
+    ]
+
+    for sem, phi, projector in checks:
+
+        def objective(
+            sig: jax.Array, sem=sem, phi=phi, projector=projector
+        ) -> jax.Array:
+            out = phi.evaluate(sig, sem, t=0)
+            return jnp.asarray(projector(out), dtype=float)
+
+        expected = objective(signal_jax)
+        compiled = jax.jit(objective)(signal_jax)
+        assert float(compiled) == pytest.approx(float(expected), abs=1e-6)
+
+
+def test_jax_backends_are_vmappable(signal_jax: jax.Array, predicates) -> None:
+    p1, p2 = predicates
+
+    checks = [
+        (
+            create_semantics("classical", backend="jax"),
+            (p1 & p2).always((0, 2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("cumulative", backend="jax"),
+            p1.eventually((0, 2)),
+            lambda v: v.pos,
+        ),
+        (
+            create_semantics("ctstl", backend="jax", delta=1.0),
+            p1.until(p2, interval=(0, 3)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
+            p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
+            lambda v: v,
+        ),
+    ]
+
+    batch = jnp.stack(
+        (
+            signal_jax,
+            signal_jax
+            + jnp.array([[0.01, -0.02], [0.02, -0.01], [0.0, 0.01], [-0.01, 0.0]]),
+            signal_jax
+            + jnp.array([[-0.02, 0.01], [0.01, 0.0], [0.02, -0.02], [0.0, 0.02]]),
+        ),
+        axis=0,
+    )
+
+    for sem, phi, projector in checks:
+
+        def objective(
+            sig: jax.Array, sem=sem, phi=phi, projector=projector
+        ) -> jax.Array:
+            out = phi.evaluate(sig, sem, t=0)
+            return jnp.asarray(projector(out), dtype=float)
+
+        vmapped = jax.vmap(objective, in_axes=0)(batch)
+        assert vmapped.shape == (batch.shape[0],)
+        assert np.all(np.isfinite(np.asarray(vmapped)))
