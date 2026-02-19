@@ -35,7 +35,7 @@ def predicates():
     return p1, p2
 
 
-def test_jax_classic_and_traditional_match_numpy_backends(
+def test_jax_classic_backends_match_numpy_backend(
     signal_np: np.ndarray, signal_jax: jax.Array, predicates
 ) -> None:
     p1, p2 = predicates
@@ -47,11 +47,7 @@ def test_jax_classic_and_traditional_match_numpy_backends(
         p1.until(p2, interval=(0, 3)),
     ]
 
-    for jax_name, np_name in [
-        ("jax", "classic"),
-        ("jax_classic", "classic"),
-        ("jax_traditional", "traditional"),
-    ]:
+    for jax_name, np_name in [("jax", "classic"), ("jax_classic", "classic")]:
         sem_jax = (
             create_semantics(jax_name, smooth=False)
             if jax_name == "jax"

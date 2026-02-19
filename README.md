@@ -13,7 +13,7 @@ A Python repository implementing multiple Signal Temporal Logic (STL) quantitati
 | D-GMSR Robustness | Yes | Mostly yes (except boundary points) | Reformulates `min`/`max` with structured generalized means; smooth while preserving sign semantics. | Uzun, S., et al. (2024). *Discrete Generalized Mean Smooth Robustness (D-GMSR) for Signal Temporal Logic*. [arXiv:2405.10996](https://arxiv.org/abs/2405.10996) |
 
 Backend mapping in this repo:
-- Classical: `classic`, `traditional`, `jax_classic`, `jax_traditional`
+- Classical: `classic`, `jax_classic`
 - Smooth soft variants: `stljax`, `jax_stljax`, and `jax` with `smooth=True`
 - Cumulative: `cumulative`, `jax_cumulative`
 - CT-STL: `ctstl`, `jax_ctstl`

@@ -32,14 +32,12 @@ def predicates():
 def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
     assert "classic" in names
-    assert "traditional" in names
     assert "cumulative" in names
     assert "ctstl" in names
     assert "dgmsr" in names
     assert "stljax" in names
     assert "jax" in names
     assert "jax_classic" in names
-    assert "jax_traditional" in names
     assert "jax_cumulative" in names
     assert "jax_ctstl" in names
     assert "jax_dgmsr" in names
@@ -100,24 +98,9 @@ def test_empty_window_raises(signal: np.ndarray, predicates) -> None:
         phi.evaluate(signal[:2], sem, t=1)
 
 
-def test_traditional_matches_classic(signal: np.ndarray, predicates) -> None:
-    p1, p2 = predicates
-    formulas = [
-        (p1 & p2),
-        (p1 | ~p2),
-        p1.always((0, 2)),
-        p2.eventually((1, 3)),
-        p1.until(p2, interval=(0, 3)),
-    ]
-
-    sem_classic = create_semantics("classic")
-    sem_traditional = create_semantics("traditional")
-
-    for phi in formulas:
-        for t in [0, 1]:
-            v_classic = phi.evaluate(signal, sem_classic, t=t)
-            v_traditional = phi.evaluate(signal, sem_traditional, t=t)
-            assert v_traditional == pytest.approx(v_classic, abs=1e-12)
+def test_traditional_alias_removed() -> None:
+    with pytest.raises(KeyError):
+        create_semantics("traditional")
 
 
 def test_cumulative_semantics_until(signal: np.ndarray, predicates) -> None:
