@@ -1,10 +1,13 @@
 # PySTL
 
 [![Tests](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml)
-[![Docs Build](https://github.com/ericpalto/PySTL/actions/workflows/docs.yml/badge.svg)](https://github.com/ericpalto/PySTL/actions/workflows/docs.yml)
-[![GitHub Pages Deploy](https://img.shields.io/github/deployments/ericpalto/PySTL/github-pages?label=github-pages)](https://github.com/ericpalto/PySTL/deployments)
-![Env](https://img.shields.io/badge/env-numpy%20%7C%20jax%20%7C%20torch-informational)
-![GitHub stars](https://img.shields.io/github/stars/ericpalto/PySTL?style=social)
+[![Docs](https://img.shields.io/website?url=https%3A%2F%2Fericpalto.github.io%2FPySTL%2F&label=docs&logo=readthedocs)](https://ericpalto.github.io/PySTL/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![NumPy](https://img.shields.io/badge/NumPy-powered-013243?logo=numpy&logoColor=white)](https://numpy.org)
+[![JAX](https://raw.githubusercontent.com/femtomc/jax-badge/main/badge.svg)](https://github.com/google/jax)
+[![PyTorch](https://img.shields.io/badge/PyTorch-supported-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org)
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+
 
 A Python repository implementing Signal Temporal Logic (STL) quantitative semantics with an explicit syntax/backend split.
 
