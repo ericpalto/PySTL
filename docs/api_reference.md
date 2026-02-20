@@ -5,7 +5,7 @@ description: Complete reference for all PySTL classes and functions
 
 # API Reference
 
-All public symbols are importable from the top-level `stl` package.
+All public symbols are importable from the top-level `pystl` package.
 
 ```python
 from pystl import (
@@ -42,6 +42,7 @@ class Predicate(Formula):
     name: str
     fn: Optional[Callable[[Signal, int], Any]] = None
     metadata: Optional[dict] = None
+    grad: Optional[Callable[[Signal, int], Any]] = None
 ```
 
 Atomic STL predicate. The function `fn(signal, t)` must return a scalar. A positive value indicates the predicate is satisfied at time `t`; a negative value indicates a violation. The magnitude is the robustness margin.
@@ -53,6 +54,8 @@ p = Predicate("x_above_zero", fn=lambda s, t: s[t, 0])
 ```
 
 **Raises:** `ValueError` at evaluation time if `fn` is `None`.
+
+If provided, `grad(signal, t)` should return the gradient of `fn` w.r.t. the state at time `t` (shape `(state_dim,)`). This is used by semantics/backends that support explicit gradients (e.g., NumPy D-GMSR via `Formula.evaluate_with_grad`).
 
 ---
 
@@ -69,6 +72,12 @@ Evaluate the formula on `signal` at time `t` using the given `semantics`.
 - `t`: evaluation time step (default `0`)
 
 Returns a scalar robustness value (type depends on the backend and semantics).
+
+### `Formula.evaluate_with_grad(signal, semantics, t=0, **kwargs)`
+
+Evaluate robustness and the gradient w.r.t. the full signal trace.
+
+This is only supported by some semantics/backends (currently: D-GMSR with the NumPy backend). For JAX/PyTorch backends, prefer their native autodiff (`jax.grad` / `torch.autograd`).
 
 ### Operator shorthands
 

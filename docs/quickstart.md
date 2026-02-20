@@ -87,6 +87,16 @@ sem_agm = create_semantics("agm", backend="numpy")
 rho_agm = phi.evaluate(signal, sem_agm, t=0)
 ```
 
+## Gradients with NumPy (D-GMSR)
+
+If you want gradients without JAX/PyTorch, use D-GMSR with the NumPy backend:
+
+```python
+sem_dgmsr = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
+rho0, grad0 = phi.evaluate_with_grad(signal, sem_dgmsr, t=0)
+print(grad0.shape)  # (time, state_dim)
+```
+
 ## Gradients with JAX
 
 Install the JAX extra (`uv sync --extra jax`), then use any JAX-compatible semantics:
