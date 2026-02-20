@@ -1,5 +1,13 @@
 # PySTL
 
+[![Tests](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml)
+[![Install Modes (PR)](https://github.com/ericpalto/PySTL/actions/workflows/install-modes-pr.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/install-modes-pr.yml)
+[![Pages PR](https://github.com/ericpalto/PySTL/actions/workflows/pages.yaml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/pages.yaml)
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![GitHub last commit](https://img.shields.io/github/last-commit/ericpalto/PySTL)
+![GitHub issues](https://img.shields.io/github/issues/ericpalto/PySTL)
+![GitHub stars](https://img.shields.io/github/stars/ericpalto/PySTL?style=social)
+
 A Python repository implementing Signal Temporal Logic (STL) quantitative semantics with an explicit syntax/backend split.
 
 ## Implemented STL Logics
