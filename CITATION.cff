@@ -6,6 +6,7 @@ authors:
     given-names: "Eric"
     orcid: "0000-0002-0783-9779"
 version: 1.0.0
+doi: "10.5281/zenodo.18707962"
 date-released: 2026-02-20
 repository-code: "https://github.com/ericpalto/PySTL"
 license: MIT
