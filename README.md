@@ -14,8 +14,8 @@ A Python repository implementing Signal Temporal Logic (STL) quantitative semant
 
 Supported syntax/backend combinations:
 - Syntaxes: `classical`, `smooth`, `cumulative`, `agm`, `dgmsr`
-- Backends: `numpy`, `jax`
-- Total combinations: 10 (`5 x 2`)
+- Backends: `numpy` (default), `jax` (with `--extra jax`), `torch` (with `--extra torch`)
+- Total combinations: 15 (`5 x 3`) when all extras are installed
 
 ## Documentation
 
@@ -32,6 +32,9 @@ uv sync
 
 # Regular install, NumPy + JAX
 uv sync --extra jax
+
+# Regular install, NumPy + PyTorch
+uv sync --extra torch
 ```
 
 Using `pip`:
@@ -44,6 +47,9 @@ pip install -e .
 
 # NumPy + JAX install
 pip install -e ".[jax]"
+
+# NumPy + PyTorch install
+pip install -e ".[torch]"
 ```
 
 ## Contributing
@@ -58,6 +64,10 @@ pre-commit install
 
 # Dev install (adds pytest + pre-commit), NumPy + JAX
 uv sync --dev --extra jax
+pre-commit install
+
+# Dev install (adds pytest + pre-commit), NumPy + PyTorch
+uv sync --dev --extra torch
 pre-commit install
 ```
 

@@ -77,6 +77,29 @@ def predicates():
 
 def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
+    expected_by_backend = {
+        "numpy": {
+            "agm/numpy",
+            "classical/numpy",
+            "smooth/numpy",
+            "cumulative/numpy",
+            "dgmsr/numpy",
+        },
+        "jax": {
+            "classical/jax",
+            "smooth/jax",
+            "cumulative/jax",
+            "dgmsr/jax",
+            "agm/jax",
+        },
+        "torch": {
+            "classical/torch",
+            "smooth/torch",
+            "cumulative/torch",
+            "dgmsr/torch",
+            "agm/torch",
+        },
+    }
     expected_numpy = {
         "agm/numpy",
         "classical/numpy",
@@ -85,18 +108,22 @@ def test_registry_contains_expected_semantics() -> None:
         "dgmsr/numpy",
     }
     assert expected_numpy.issubset(names)
-    if "jax" in registry.backends():
-        assert names == expected_numpy | {
-            "classical/jax",
-            "smooth/jax",
-            "cumulative/jax",
-            "dgmsr/jax",
-            "agm/jax",
-        }
-    else:
-        assert names == expected_numpy
+    backends = registry.backends()
+    assert set(backends).issubset({"numpy", "jax", "torch"})
+    assert "numpy" in backends
+
+    expected_names: set[str] = set()
+    for backend in backends:
+        expected_names |= expected_by_backend[backend]
+    assert names == expected_names
+
     assert registry.syntaxes() == ["agm", "classical", "cumulative", "dgmsr", "smooth"]
-    assert registry.backends() in (["jax", "numpy"], ["numpy"])
+    assert registry.backends() in (
+        ["jax", "numpy", "torch"],
+        ["jax", "numpy"],
+        ["numpy", "torch"],
+        ["numpy"],
+    )
 
 
 def test_boolean_and_temporal_always_with_classic_semantics(
@@ -175,7 +202,7 @@ def test_unknown_syntax_or_backend_raises() -> None:
     with pytest.raises(KeyError):
         create_semantics("traditional")
     with pytest.raises(KeyError):
-        create_semantics("classical", backend="torch")
+        create_semantics("classical", backend="torch_backend")
 
 
 def test_empty_window_raises(signal: np.ndarray, predicates) -> None:
