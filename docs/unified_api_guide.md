@@ -6,7 +6,7 @@ description: How to create STL formulas and choose syntax/backend
 # Unified API Guide: Syntax + Backend Split
 
 The STL API is now split into two independent choices:
-- `syntax`: `classical`, `smooth`, `cumulative`, `dgmsr`
+- `syntax`: `classical`, `smooth`, `cumulative`, `agm`, `dgmsr`
 - `backend`: `numpy` (always) and `jax` (when installed with the `jax` extra)
 
 Use `create_semantics(syntax, backend=...)`.
@@ -54,7 +54,7 @@ print(rho0)
 ```python
 from stl import registry
 
-print(registry.syntaxes())  # ['classical', 'cumulative', 'dgmsr', 'smooth']
+print(registry.syntaxes())  # ['agm', 'classical', 'cumulative', 'dgmsr', 'smooth']
 print(registry.backends())  # ['numpy'] or ['jax', 'numpy']
 print(registry.names())
 # Includes JAX entries when installed with `--extra jax`
@@ -107,9 +107,16 @@ sem_np = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
 sem_jax = create_semantics("dgmsr", backend="jax", eps=1e-8, p=2)
 ```
 
+### AGM
+
+```python
+sem_np = create_semantics("agm", backend="numpy")
+sem_jax = create_semantics("agm", backend="jax")
+```
+
 ## Return Types
 
-- `classical`, `smooth`, `dgmsr`: scalar robustness (`float` for NumPy backend, scalar `jax.Array` for JAX backend)
+- `classical`, `smooth`, `agm`, `dgmsr`: scalar robustness (`float` for NumPy backend, scalar `jax.Array` for JAX backend)
 - `cumulative`: robustness container with `.pos` and `.neg`
 
 ## JAX Gradients

@@ -190,6 +190,31 @@ def test_jax_dgmsr_matches_numpy_backend_with_weights(
     assert v_until_jax == pytest.approx(v_until_np, abs=1e-6)
 
 
+def test_jax_agm_matches_numpy_backend_with_weights(
+    signal_np: np.ndarray, signal_jax: jax.Array, predicates
+) -> None:
+    p1, p2 = predicates
+    phi_and = And(p1, p2, weights=[1.0, 2.0])
+    phi_until = p1.until(
+        p2,
+        interval=Interval(0, 3),
+        weights_left=[1.0, 1.5, 1.1, 0.9],
+        weights_right=[1.0, 0.8, 1.2, 1.4],
+        weights_pair=(1.0, 1.3),
+    )
+
+    sem_jax = create_semantics("agm", backend="jax")
+    sem_np = create_semantics("agm", backend="numpy")
+
+    v_and_jax = float(phi_and.evaluate(signal_jax, sem_jax, t=0))
+    v_and_np = float(phi_and.evaluate(signal_np, sem_np, t=0))
+    assert v_and_jax == pytest.approx(v_and_np, abs=1e-6)
+
+    v_until_jax = float(phi_until.evaluate(signal_jax, sem_jax, t=0))
+    v_until_np = float(phi_until.evaluate(signal_np, sem_np, t=0))
+    assert v_until_jax == pytest.approx(v_until_np, abs=1e-6)
+
+
 def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> None:
     p1, p2 = predicates
 
@@ -212,6 +237,17 @@ def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> Non
         (
             create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("agm", backend="jax"),
+            p1.until(
+                p2,
+                interval=(0, 3),
+                weights_left=[1.0, 1.5, 1.1, 0.9],
+                weights_right=[1.0, 0.8, 1.2, 1.4],
+                weights_pair=(1.0, 1.3),
+            ),
             lambda v: v,
         ),
     ]
@@ -253,6 +289,17 @@ def test_jax_backends_are_jittable(signal_jax: jax.Array, predicates) -> None:
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
             lambda v: v,
         ),
+        (
+            create_semantics("agm", backend="jax"),
+            p1.until(
+                p2,
+                interval=(0, 3),
+                weights_left=[1.0, 1.5, 1.1, 0.9],
+                weights_right=[1.0, 0.8, 1.2, 1.4],
+                weights_pair=(1.0, 1.3),
+            ),
+            lambda v: v,
+        ),
     ]
 
     for sem, phi, projector in checks:
@@ -290,6 +337,17 @@ def test_jax_backends_are_vmappable(signal_jax: jax.Array, predicates) -> None:
         (
             create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("agm", backend="jax"),
+            p1.until(
+                p2,
+                interval=(0, 3),
+                weights_left=[1.0, 1.5, 1.1, 0.9],
+                weights_right=[1.0, 0.8, 1.2, 1.4],
+                weights_pair=(1.0, 1.3),
+            ),
             lambda v: v,
         ),
     ]

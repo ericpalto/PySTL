@@ -3,10 +3,56 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from stl import Interval, Predicate, create_semantics
+from stl import Or, And, Interval, Predicate, create_semantics
 from stl.semantics import registry
 
 # pylint: disable=redefined-outer-name
+
+
+def _weights(weights, length: int) -> np.ndarray:
+    if weights is None:
+        return np.ones(length, dtype=float)
+    arr = np.asarray(weights, dtype=float).reshape(-1)
+    if arr.size < length:
+        raise ValueError("weights too short for test expectation helper.")
+    return arr[:length]
+
+
+def _agm_and(values, weights=None) -> float:
+    vals = np.asarray(values, dtype=float).reshape(-1)
+    w = _weights(weights, vals.size)
+    if np.any(vals <= 0.0):
+        return float(np.sum(w * np.minimum(vals, 0.0)) / np.sum(w))
+    norm = w / np.sum(w)
+    return float(np.exp(np.sum(norm * np.log(1.0 + vals))) - 1.0)
+
+
+def _agm_or(values, weights=None) -> float:
+    vals = np.asarray(values, dtype=float).reshape(-1)
+    w = _weights(weights, vals.size)
+    if np.any(vals > 0.0):
+        return float(np.sum(w * np.maximum(vals, 0.0)) / np.sum(w))
+    norm = w / np.sum(w)
+    return float(1.0 - np.exp(np.sum(norm * np.log(1.0 - vals))))
+
+
+def _agm_until_expected(
+    *,
+    left_trace: np.ndarray,
+    right_trace: np.ndarray,
+    start: int,
+    end: int | None,
+    weights_left=None,
+    weights_right=None,
+    weights_pair=(1.0, 1.0),
+) -> float:
+    last = left_trace.size - 1 if end is None else min(end, left_trace.size - 1)
+    candidates = []
+    for idx in range(start, last + 1):
+        prefix = _agm_and(left_trace[: idx + 1], weights=weights_left)
+        pair = _agm_and([prefix, right_trace[idx]], weights=weights_pair)
+        candidates.append(pair)
+    return _agm_or(candidates, weights=weights_right)
 
 
 @pytest.fixture
@@ -32,6 +78,7 @@ def predicates():
 def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
     expected_numpy = {
+        "agm/numpy",
         "classical/numpy",
         "smooth/numpy",
         "cumulative/numpy",
@@ -44,10 +91,11 @@ def test_registry_contains_expected_semantics() -> None:
             "smooth/jax",
             "cumulative/jax",
             "dgmsr/jax",
+            "agm/jax",
         }
     else:
         assert names == expected_numpy
-    assert registry.syntaxes() == ["classical", "cumulative", "dgmsr", "smooth"]
+    assert registry.syntaxes() == ["agm", "classical", "cumulative", "dgmsr", "smooth"]
     assert registry.backends() in (["jax", "numpy"], ["numpy"])
 
 
@@ -180,3 +228,84 @@ def test_cumulative_eventually_is_sum(signal: np.ndarray, predicates) -> None:
 def test_ctstl_syntax_is_disabled() -> None:
     with pytest.raises(KeyError):
         create_semantics("ctstl")
+
+
+def test_agm_syntax_aliases() -> None:
+    assert create_semantics("agm").__class__.__name__ == "AgmRobustSemantics"
+    assert (
+        create_semantics("arithmetic-geometric-mean").__class__.__name__
+        == "AgmRobustSemantics"
+    )
+
+
+def test_agm_boolean_branches(signal: np.ndarray, predicates) -> None:
+    p1, p2 = predicates
+    pneg = Predicate("pneg", fn=lambda _s, _t: -0.2)
+    sem = create_semantics("agm")
+
+    and_pos = float((p1 & p2).evaluate(signal, sem, t=0))
+    and_neg = float((p1 & p2).evaluate(signal, sem, t=3))
+    or_pos = float((p1 | p2).evaluate(signal, sem, t=3))
+    or_neg = float((pneg | ~p2).evaluate(signal, sem, t=0))
+
+    assert and_pos == pytest.approx(_agm_and([0.4, 0.6]), abs=1e-12)
+    assert and_neg == pytest.approx(_agm_and([-0.1, 0.1]), abs=1e-12)
+    assert or_pos == pytest.approx(_agm_or([-0.1, 0.1]), abs=1e-12)
+    assert or_neg == pytest.approx(_agm_or([-0.2, -0.6]), abs=1e-12)
+
+
+def test_agm_weighted_boolean_operators(signal: np.ndarray, predicates) -> None:
+    p1, p2 = predicates
+    sem = create_semantics("agm")
+
+    phi_and_weighted = And(p1, p2, weights=[1.0, 3.0])
+    phi_or_weighted = Or(p1, p2, weights=[1.0, 3.0])
+
+    and_weighted = float(phi_and_weighted.evaluate(signal, sem, t=0))
+    or_weighted = float(phi_or_weighted.evaluate(signal, sem, t=3))
+
+    expected_and_weighted = _agm_and([0.4, 0.6], weights=[1.0, 3.0])
+    expected_or_weighted = _agm_or([-0.1, 0.1], weights=[1.0, 3.0])
+    assert and_weighted == pytest.approx(expected_and_weighted, abs=1e-12)
+    assert or_weighted == pytest.approx(expected_or_weighted, abs=1e-12)
+
+
+def test_agm_temporal_branches(signal: np.ndarray, predicates) -> None:
+    p1, p2 = predicates
+    sem = create_semantics("agm")
+
+    always_pos = float(p1.always((0, 2)).evaluate(signal, sem, t=0))
+    eventually_pos = float(p1.eventually((0, 3)).evaluate(signal, sem, t=0))
+    eventually_neg = float((~p2).eventually((0, 3)).evaluate(signal, sem, t=0))
+
+    assert always_pos == pytest.approx(_agm_and([0.4, 0.3, 0.1]), abs=1e-12)
+    assert eventually_pos == pytest.approx(_agm_or([0.4, 0.3, 0.1, -0.1]), abs=1e-12)
+    assert eventually_neg == pytest.approx(_agm_or([-0.6, -0.4, -0.2, -0.1]), abs=1e-12)
+
+
+def test_agm_until_with_weights(signal: np.ndarray, predicates) -> None:
+    p1, p2 = predicates
+    sem = create_semantics("agm")
+
+    phi = p1.until(
+        p2,
+        interval=(0, 3),
+        weights_left=[1.0, 2.0, 1.5, 1.0],
+        weights_right=[1.0, 1.2, 0.8, 1.4],
+        weights_pair=(1.0, 1.3),
+    )
+
+    value = float(phi.evaluate(signal, sem, t=0))
+
+    left_trace = np.asarray([0.6 - signal[t, 0] for t in range(signal.shape[0])])
+    right_trace = np.asarray([signal[t, 1] - 0.2 for t in range(signal.shape[0])])
+    expected = _agm_until_expected(
+        left_trace=left_trace,
+        right_trace=right_trace,
+        start=0,
+        end=3,
+        weights_left=[1.0, 2.0, 1.5, 1.0],
+        weights_right=[1.0, 1.2, 0.8, 1.4],
+        weights_pair=(1.0, 1.3),
+    )
+    assert value == pytest.approx(expected, abs=1e-12)
