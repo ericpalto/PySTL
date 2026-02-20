@@ -12,6 +12,14 @@
 
 > **PySTL** is a unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
 
+ 🚀 **TL;DR**
+ - One API
+ - Multiple STL semantics (Classic, soft, cumulative, D-GMSR... and more!)
+ - NumPy / JAX / PyTorch backends
+ - Autograd & GPU ready
+
+ ... All under a unified API!
+
 ---
 
 **Why?**
