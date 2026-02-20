@@ -5,6 +5,10 @@ description: Unified STL robustness semantics for NumPy, JAX, and PyTorch
 
 # PySTL
 
+<p align="center">
+  <img src="./PySTL.png" alt="PySTL" width="720">
+</p>
+
 A unified API for **Signal Temporal Logic (STL) robustness evaluation** across multiple semantics and computational backends.
 
 PySTL consolidates five STL quantitative semantics — Classical, Smooth, Cumulative, AGM, and D-GMSR — under one consistent interface. Switch semantics or backends without rewriting your formulas.

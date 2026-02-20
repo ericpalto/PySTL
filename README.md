@@ -2,6 +2,10 @@
 
 >A unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
 
+<p align="center">
+  <img src="docs/PySTL.png" alt="PySTL" width="720">
+</p>
+
 
 <p align="center">
   <a href="https://github.com/ericpalto/PySTL/actions/workflows/tests.yml">
@@ -30,7 +34,8 @@
     <img src="https://img.shields.io/badge/PyTorch-supported-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch">
   </a>
 </p>
- 🚀 **TL;DR**
+
+ ### 🚀 TLDR
 
 Unified, backend-agnostic STL robustness semantics in one API.  Switch semantics. Switch backend. Keep the same specification:
 
