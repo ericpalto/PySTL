@@ -28,6 +28,22 @@ except ImportError as exc:
 else:
     _HAS_JAX = True
 
+_TORCH_IMPORT_ERROR: Exception | None = None
+_HAS_TORCH = False
+try:
+    from stl.torch import (
+        TorchDgmsrSemantics,
+        TorchAgmRobustSemantics,
+        TorchCumulativeSemantics,
+        TorchCumulativeRobustness,
+        TorchSmoothRobustSemantics,
+        TorchClassicRobustSemantics,
+    )
+except ImportError as exc:
+    _TORCH_IMPORT_ERROR = exc
+else:
+    _HAS_TORCH = True
+
 registry = SemanticsRegistry()
 registry.register(syntax="classical", backend="numpy", factory=ClassicRobustSemantics)
 registry.register(syntax="smooth", backend="numpy", factory=SmoothRobustSemantics)
@@ -44,6 +60,18 @@ if _HAS_JAX:
     )
     registry.register(syntax="dgmsr", backend="jax", factory=JaxDgmsrSemantics)
     registry.register(syntax="agm", backend="jax", factory=JaxAgmRobustSemantics)
+if _HAS_TORCH:
+    registry.register(
+        syntax="classical", backend="torch", factory=TorchClassicRobustSemantics
+    )
+    registry.register(
+        syntax="smooth", backend="torch", factory=TorchSmoothRobustSemantics
+    )
+    registry.register(
+        syntax="cumulative", backend="torch", factory=TorchCumulativeSemantics
+    )
+    registry.register(syntax="dgmsr", backend="torch", factory=TorchDgmsrSemantics)
+    registry.register(syntax="agm", backend="torch", factory=TorchAgmRobustSemantics)
 
 _SYNTAX_ALIASES = {
     "classical": "classical",
@@ -58,6 +86,8 @@ _BACKEND_ALIASES = {
     "np": "numpy",
     "python": "numpy",
     "jax": "jax",
+    "torch": "torch",
+    "pytorch": "torch",
 }
 
 
@@ -83,6 +113,11 @@ def create_semantics(syntax: str, *, backend: str = "numpy", **kwargs):
             "JAX backend dependencies are not installed. "
             "Install with `uv sync --extra jax` or `pip install -e .[jax]`."
         ) from _JAX_IMPORT_ERROR
+    if normalized_backend == "torch" and not _HAS_TORCH:
+        raise ImportError(
+            "PyTorch backend dependencies are not installed. "
+            "Install with `uv sync --extra torch` or `pip install -e .[torch]`."
+        ) from _TORCH_IMPORT_ERROR
     return registry.create(
         syntax=normalized_syntax,
         backend=normalized_backend,
@@ -117,5 +152,16 @@ if _HAS_JAX:
             "JaxCtstlSemantics",
             "JaxDgmsrSemantics",
             "JaxAgmRobustSemantics",
+        ]
+    )
+if _HAS_TORCH:
+    __all__.extend(
+        [
+            "TorchClassicRobustSemantics",
+            "TorchSmoothRobustSemantics",
+            "TorchCumulativeRobustness",
+            "TorchCumulativeSemantics",
+            "TorchDgmsrSemantics",
+            "TorchAgmRobustSemantics",
         ]
     )

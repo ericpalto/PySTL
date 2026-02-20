@@ -7,7 +7,7 @@ description: How to create STL formulas and choose syntax/backend
 
 The STL API is now split into two independent choices:
 - `syntax`: `classical`, `smooth`, `cumulative`, `agm`, `dgmsr`
-- `backend`: `numpy` (always) and `jax` (when installed with the `jax` extra)
+- `backend`: `numpy` (always), `jax` (with the `jax` extra), and `torch` (with the `torch` extra)
 
 Use `create_semantics(syntax, backend=...)`.
 
@@ -19,6 +19,9 @@ uv sync
 
 # Regular install, NumPy + JAX
 uv sync --extra jax
+
+# Regular install, NumPy + PyTorch
+uv sync --extra torch
 ```
 
 For development setup and contribution guidelines, see the
@@ -55,9 +58,9 @@ print(rho0)
 from stl import registry
 
 print(registry.syntaxes())  # ['agm', 'classical', 'cumulative', 'dgmsr', 'smooth']
-print(registry.backends())  # ['numpy'] or ['jax', 'numpy']
+print(registry.backends())  # ['numpy'] / ['jax', 'numpy'] / ['numpy', 'torch'] / ['jax', 'numpy', 'torch']
 print(registry.names())
-# Includes JAX entries when installed with `--extra jax`
+# Includes JAX and/or Torch entries when installed with `--extra jax` / `--extra torch`
 ```
 
 ## Formula Construction
@@ -83,6 +86,7 @@ Notes:
 ```python
 sem_np = create_semantics("classical", backend="numpy")
 sem_jax = create_semantics("classical", backend="jax")
+sem_torch = create_semantics("classical", backend="torch")
 ```
 
 ### Smooth
@@ -90,6 +94,7 @@ sem_jax = create_semantics("classical", backend="jax")
 ```python
 sem_np = create_semantics("smooth", backend="numpy", temperature=0.25)
 sem_jax = create_semantics("smooth", backend="jax", temperature=0.25)
+sem_torch = create_semantics("smooth", backend="torch", temperature=0.25)
 ```
 
 
@@ -98,6 +103,7 @@ sem_jax = create_semantics("smooth", backend="jax", temperature=0.25)
 ```python
 sem_np = create_semantics("cumulative", backend="numpy")
 sem_jax = create_semantics("cumulative", backend="jax")
+sem_torch = create_semantics("cumulative", backend="torch")
 ```
 
 ### DGMSR
@@ -105,6 +111,7 @@ sem_jax = create_semantics("cumulative", backend="jax")
 ```python
 sem_np = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
 sem_jax = create_semantics("dgmsr", backend="jax", eps=1e-8, p=2)
+sem_torch = create_semantics("dgmsr", backend="torch", eps=1e-8, p=2)
 ```
 
 ### AGM
@@ -112,11 +119,12 @@ sem_jax = create_semantics("dgmsr", backend="jax", eps=1e-8, p=2)
 ```python
 sem_np = create_semantics("agm", backend="numpy")
 sem_jax = create_semantics("agm", backend="jax")
+sem_torch = create_semantics("agm", backend="torch")
 ```
 
 ## Return Types
 
-- `classical`, `smooth`, `agm`, `dgmsr`: scalar robustness (`float` for NumPy backend, scalar `jax.Array` for JAX backend)
+- `classical`, `smooth`, `agm`, `dgmsr`: scalar robustness (`float` for NumPy backend, scalar `jax.Array` for JAX backend, scalar `torch.Tensor` for Torch backend)
 - `cumulative`: robustness container with `.pos` and `.neg`
 
 ## JAX Gradients
@@ -136,6 +144,7 @@ grad = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(signal_jax)
 
 - Unknown syntax/backend: `KeyError`
 - Requesting `backend="jax"` without JAX extra installed: `ImportError`
+- Requesting `backend="torch"` without Torch extra installed: `ImportError`
 - Empty temporal window (`always`/`eventually`): `ValueError`
 - `until` with empty trace window: `ValueError`
 - Missing `Predicate.fn`: `ValueError`
