@@ -3,7 +3,7 @@
 >A unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
 
 <p align="center">
-  <img src="docs/PySTL.png" alt="PySTL" width="720">
+  <img src="docs/PySTL.png" alt="PySTL">
 </p>
 
 
