@@ -66,3 +66,26 @@ else:
             "JaxDgmsrSemantics",
         ]
     )
+
+try:
+    from .semantics import (
+        TorchDgmsrSemantics,
+        TorchAgmRobustSemantics,
+        TorchCumulativeSemantics,
+        TorchCumulativeRobustness,
+        TorchSmoothRobustSemantics,
+        TorchClassicRobustSemantics,
+    )
+except ImportError:
+    pass
+else:
+    __all__.extend(
+        [
+            "TorchClassicRobustSemantics",
+            "TorchSmoothRobustSemantics",
+            "TorchAgmRobustSemantics",
+            "TorchCumulativeRobustness",
+            "TorchCumulativeSemantics",
+            "TorchDgmsrSemantics",
+        ]
+    )
