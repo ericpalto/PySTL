@@ -19,6 +19,9 @@ uv sync
 
 # Regular install, NumPy + JAX
 uv sync --extra jax
+
+# Regular install, NumPy + PyTorch
+uv sync --extra torch
 ```
 
 For development setup and contribution guidelines, see the

@@ -32,6 +32,9 @@ uv sync
 
 # Regular install, NumPy + JAX
 uv sync --extra jax
+
+# Regular install, NumPy + PyTorch
+uv sync --extra torch
 ```
 
 Using `pip`:
@@ -44,6 +47,9 @@ pip install -e .
 
 # NumPy + JAX install
 pip install -e ".[jax]"
+
+# NumPy + PyTorch install
+pip install -e ".[torch]"
 ```
 
 ## Contributing
@@ -58,6 +64,10 @@ pre-commit install
 
 # Dev install (adds pytest + pre-commit), NumPy + JAX
 uv sync --dev --extra jax
+pre-commit install
+
+# Dev install (adds pytest + pre-commit), NumPy + PyTorch
+uv sync --dev --extra torch
 pre-commit install
 ```
 
