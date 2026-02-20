@@ -41,6 +41,16 @@ def _ensure_no_weights(weights: Optional[Sequence[float]], where: str) -> None:
         raise ValueError(f"`{where}` does not support explicit weights.")
 
 
+def _weighted_arithmetic_mean_jax(values: Any, weights: jnp.ndarray) -> Any:
+    return jnp.sum(weights * values, axis=0) / jnp.sum(weights, axis=0)
+
+
+def _weighted_geometric_mean_jax(values: Any, weights: jnp.ndarray) -> Any:
+    norm = weights / jnp.sum(weights, axis=0)
+    safe_values = jnp.maximum(values, 1e-12)
+    return jnp.exp(jnp.sum(norm * jnp.log(safe_values), axis=0))
+
+
 class _JaxHardMinMaxSemantics(Semantics[Any]):
     """Shared min/max robustness helpers for hard JAX semantics."""
 
@@ -164,6 +174,91 @@ class JaxSmoothRobustSemantics(JaxRobustSemantics):
 
     def __init__(self, *, temperature: float = 1.0) -> None:
         super().__init__(smooth=True, temperature=temperature)
+
+
+class JaxAgmRobustSemantics(Semantics[Any]):
+    """Arithmetic-Geometric Mean (AGM) robustness implemented in JAX."""
+
+    def predicate(self, predicate: Any, signal, t: int) -> Any:
+        if predicate.fn is None:
+            raise ValueError(
+                f"Predicate '{predicate.name}' does not define `fn(signal, t)`."
+            )
+        return jnp.asarray(predicate.fn(signal, t), dtype=float)
+
+    def boolean_not(self, value: Any) -> Any:
+        return -jnp.asarray(value, dtype=float)
+
+    def boolean_and(
+        self,
+        values: Sequence[Any],
+        *,
+        weights: Optional[Sequence[float]] = None,
+    ) -> Any:
+        arr = jnp.asarray(values, dtype=float).reshape(-1)
+        if arr.size == 0:
+            raise ValueError("boolean_and requires at least one value.")
+        w = _resolve_weights(weights, int(arr.size), "weights")
+
+        neg_part = _weighted_arithmetic_mean_jax(jnp.minimum(arr, 0.0), w)
+        pos_part = _weighted_geometric_mean_jax(1.0 + arr, w) - 1.0
+        return jnp.where(jnp.all(arr > 0.0), pos_part, neg_part)
+
+    def boolean_or(
+        self,
+        values: Sequence[Any],
+        *,
+        weights: Optional[Sequence[float]] = None,
+    ) -> Any:
+        arr = jnp.asarray(values, dtype=float).reshape(-1)
+        if arr.size == 0:
+            raise ValueError("boolean_or requires at least one value.")
+        w = _resolve_weights(weights, int(arr.size), "weights")
+
+        pos_part = _weighted_arithmetic_mean_jax(jnp.maximum(arr, 0.0), w)
+        neg_part = 1.0 - _weighted_geometric_mean_jax(1.0 - arr, w)
+        return jnp.where(jnp.any(arr > 0.0), pos_part, neg_part)
+
+    def temporal_until(
+        self,
+        *,
+        left_trace: Sequence[Any],
+        right_trace: Sequence[Any],
+        start: int,
+        end: Optional[int],
+        weights_left: Optional[Sequence[float]] = None,
+        weights_right: Optional[Sequence[float]] = None,
+        weights_pair: Sequence[float] = (1.0, 1.0),
+    ) -> Any:
+        left = jnp.asarray(left_trace, dtype=float)
+        right = jnp.asarray(right_trace, dtype=float)
+        if left.size == 0 or right.size == 0:
+            raise ValueError("UNTIL traces must be non-empty.")
+        if left.size != right.size:
+            raise ValueError("UNTIL traces must have equal length.")
+        if start < 0:
+            raise ValueError("UNTIL start must be >= 0.")
+
+        max_index = int(left.shape[0] - 1)
+        last = max_index if end is None else min(end, max_index)
+        if start > last:
+            raise ValueError("UNTIL temporal window is empty.")
+
+        candidate_count = last - start + 1
+        w_pair = _resolve_weights(weights_pair, 2, "weights_pair")
+        w_left = _resolve_weights(weights_left, last + 1, "weights_left")
+        w_right = _resolve_weights(weights_right, candidate_count, "weights_right")
+
+        candidates: list[Any] = []
+        for offset in range(start, last + 1):
+            prefix = self.boolean_and(left[: offset + 1], weights=w_left[: offset + 1])
+            candidate = self.boolean_and(
+                jnp.asarray([prefix, right[offset]], dtype=float),
+                weights=w_pair,
+            )
+            candidates.append(candidate)
+
+        return self.boolean_or(jnp.asarray(candidates, dtype=float), weights=w_right)
 
 
 @dataclass(frozen=True)
