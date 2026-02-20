@@ -1,6 +1,6 @@
 """PyTorch-native STL semantics utilities."""
 
-from stl.torch.semantics import (
+from .semantics import (
     TorchDgmsrSemantics,
     TorchAgmRobustSemantics,
     TorchCumulativeSemantics,

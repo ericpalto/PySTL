@@ -14,7 +14,7 @@ import jax.numpy as jnp
 from stljax import utils as stljax_utils
 from jax.scipy.special import logsumexp
 
-from stl.semantics.base import Semantics
+from ..semantics.base import Semantics
 
 
 def _validate_temperature(temperature: float) -> float:

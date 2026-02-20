@@ -21,7 +21,7 @@ Pass PyTorch tensors as the signal and use `backend="torch"`:
 
 ```python
 import torch
-from stl import Predicate, Interval, create_semantics
+from pystl import Predicate, Interval, create_semantics
 
 signal = torch.tensor([
     [0.2, 0.8],
@@ -85,7 +85,7 @@ PySTL can be embedded inside a PyTorch training loop. For example, use robustnes
 
 ```python
 import torch.nn as nn
-from stl import create_semantics
+from pystl import create_semantics
 
 class STLConstrainedModel(nn.Module):
     def __init__(self, formula, semantics):

@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from stl.semantics.agm import AgmRobustSemantics
-from stl.semantics.base import Semantics
-from stl.semantics.ctstl import CtstlSemantics, tau_to_k, kth_largest
-from stl.semantics.dgmsr import DgmsrSemantics
-from stl.semantics.smooth import SmoothRobustSemantics
-from stl.semantics.classic import ClassicRobustSemantics
-from stl.semantics.registry import SemanticsRegistry
-from stl.semantics.cumulative import CumulativeSemantics, CumulativeRobustness
+from .agm import AgmRobustSemantics
+from .base import Semantics
+from .ctstl import CtstlSemantics, tau_to_k, kth_largest
+from .dgmsr import DgmsrSemantics
+from .smooth import SmoothRobustSemantics
+from .classic import ClassicRobustSemantics
+from .registry import SemanticsRegistry
+from .cumulative import CumulativeSemantics, CumulativeRobustness
 
 _JAX_IMPORT_ERROR: Exception | None = None
 _HAS_JAX = False
 try:
-    from stl.jax import (
+    from ..jax import (
         JaxCtstlSemantics,
         JaxDgmsrSemantics,
         JaxAgmRobustSemantics,
@@ -31,7 +31,7 @@ else:
 _TORCH_IMPORT_ERROR: Exception | None = None
 _HAS_TORCH = False
 try:
-    from stl.torch import (
+    from ..torch import (
         TorchDgmsrSemantics,
         TorchAgmRobustSemantics,
         TorchCumulativeSemantics,
