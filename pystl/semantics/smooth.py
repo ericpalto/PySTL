@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from stl.semantics.base import Semantics
+from .base import Semantics
 
 
 def _validate_temperature(temperature: float) -> float:

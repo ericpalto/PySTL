@@ -1,10 +1,4 @@
-"""Arithmetic-Geometric Mean (AGM) robustness semantics.
-
-This module implements the normalized signed robustness from:
-Mehdipour, N., Vasile, C.-I., & Belta, C. (ACC 2019)
-"Arithmetic-Geometric Mean Robustness for Control from
-Signal Temporal Logic Specifications."
-"""
+"""D-GMSR semantics backend for the unified API."""
 
 from __future__ import annotations
 
@@ -12,7 +6,8 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from stl.semantics.base import Semantics
+from .base import Semantics
+from ..dgmsr import gmsr_or, gmsr_and
 
 
 def _resolve_weights(
@@ -24,28 +19,18 @@ def _resolve_weights(
         raise ValueError(f"{name} length must be positive.")
     if weights is None:
         return np.ones(length, dtype=float)
-
     arr = np.asarray(weights, dtype=float).reshape(-1)
     if arr.size < length:
         raise ValueError(f"{name} requires at least {length} entries.")
-    if np.any(arr[:length] < 0.0):
-        raise ValueError(f"{name} entries must be >= 0.")
-    if np.sum(arr[:length]) <= 0.0:
-        raise ValueError(f"{name} entries must contain at least one positive weight.")
     return arr[:length]
 
 
-def _weighted_arithmetic_mean(values: np.ndarray, weights: np.ndarray) -> float:
-    return float(np.sum(weights * values, dtype=float) / np.sum(weights, dtype=float))
+class DgmsrSemantics(Semantics[float]):
+    """D-GMSR robustness semantics using smooth Boolean/Temporal operators."""
 
-
-def _weighted_geometric_mean(values: np.ndarray, weights: np.ndarray) -> float:
-    norm = weights / np.sum(weights, dtype=float)
-    return float(np.exp(np.sum(norm * np.log(values), dtype=float)))
-
-
-class AgmRobustSemantics(Semantics[float]):
-    """AGM robustness semantics for STL formulas."""
+    def __init__(self, *, eps: float = 1e-8, p: int = 1) -> None:
+        self.eps = float(eps)
+        self.p = int(p)
 
     def predicate(self, predicate, signal, t: int) -> float:
         if predicate.fn is None:
@@ -58,34 +43,24 @@ class AgmRobustSemantics(Semantics[float]):
         return -float(value)
 
     def boolean_and(
-        self,
-        values: Sequence[float],
-        *,
-        weights: Optional[Sequence[float]] = None,
+        self, values: Sequence[float], *, weights: Optional[Sequence[float]] = None
     ) -> float:
-        arr = np.asarray(values, dtype=float).reshape(-1)
-        if arr.size == 0:
+        vals = np.asarray(values, dtype=float)
+        if vals.size == 0:
             raise ValueError("boolean_and requires at least one value.")
-        w = _resolve_weights(weights, arr.size, "weights")
-
-        if np.any(arr <= 0.0):
-            return _weighted_arithmetic_mean(np.minimum(arr, 0.0), w)
-        return _weighted_geometric_mean(1.0 + arr, w) - 1.0
+        w = _resolve_weights(weights, vals.size, "weights")
+        out, _ = gmsr_and(eps=self.eps, p=self.p, weights=w, values=vals)
+        return float(out)
 
     def boolean_or(
-        self,
-        values: Sequence[float],
-        *,
-        weights: Optional[Sequence[float]] = None,
+        self, values: Sequence[float], *, weights: Optional[Sequence[float]] = None
     ) -> float:
-        arr = np.asarray(values, dtype=float).reshape(-1)
-        if arr.size == 0:
+        vals = np.asarray(values, dtype=float)
+        if vals.size == 0:
             raise ValueError("boolean_or requires at least one value.")
-        w = _resolve_weights(weights, arr.size, "weights")
-
-        if np.any(arr > 0.0):
-            return _weighted_arithmetic_mean(np.maximum(arr, 0.0), w)
-        return 1.0 - _weighted_geometric_mean(1.0 - arr, w)
+        w = _resolve_weights(weights, vals.size, "weights")
+        out, _ = gmsr_or(eps=self.eps, p=self.p, weights=w, values=vals)
+        return float(out)
 
     def temporal_until(
         self,
@@ -118,13 +93,26 @@ class AgmRobustSemantics(Semantics[float]):
             weights_right, candidate_offsets.size, "weights_right"
         )
 
-        candidates: list[float] = []
+        s_values: list[float] = []
         for offset in candidate_offsets:
-            prefix = self.boolean_and(left[: offset + 1], weights=w_left[: offset + 1])
-            candidate = self.boolean_and(
-                np.asarray([prefix, right[offset]], dtype=float),
-                weights=w_pair,
+            y_i, _ = gmsr_and(
+                eps=self.eps,
+                p=self.p,
+                weights=w_left[: offset + 1],
+                values=left[: offset + 1],
             )
-            candidates.append(float(candidate))
+            s_i, _ = gmsr_and(
+                eps=self.eps,
+                p=self.p,
+                weights=w_pair,
+                values=np.asarray([y_i, right[offset]], dtype=float),
+            )
+            s_values.append(float(s_i))
 
-        return self.boolean_or(candidates, weights=w_right)
+        z, _ = gmsr_or(
+            eps=self.eps,
+            p=self.p,
+            weights=w_right,
+            values=np.asarray(s_values, dtype=float),
+        )
+        return float(z)

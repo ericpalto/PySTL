@@ -48,7 +48,7 @@ pip install -e ".[jax,torch]"
 ## Verifying the installation
 
 ```python
-from stl import registry
+from pystl import registry
 
 print(registry.syntaxes())   # ['agm', 'classical', 'cumulative', 'dgmsr', 'smooth']
 print(registry.backends())   # ['numpy'] or ['jax', 'numpy'] or ['jax', 'numpy', 'torch']

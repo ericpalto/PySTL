@@ -6,7 +6,7 @@ This module provides a semantics-agnostic formula syntax tree:
 - Temporal operators
 
 Each formula is evaluated by a semantics backend implementing
-`stl.semantics.base.Semantics`.
+`pystl.semantics.base.Semantics`.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
-from stl.semantics.base import Semantics
+from .semantics.base import Semantics
 
 Signal: TypeAlias = NDArray[np.float64]
 PredicateFn = Callable[[Signal, int], Any]

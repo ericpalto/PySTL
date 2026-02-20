@@ -12,7 +12,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from stl.semantics.base import Semantics
+from .base import Semantics
 
 
 def kth_largest(values: Sequence[float], k: int) -> float:

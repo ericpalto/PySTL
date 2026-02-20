@@ -17,7 +17,7 @@ The same formula object can be evaluated under any combination of semantics and 
 ### Predicate
 
 ```python
-from stl import Predicate
+from pystl import Predicate
 
 p = Predicate("name", fn=lambda signal, t: signal[t, 0] - 1.0)
 ```
@@ -38,7 +38,7 @@ phi1_or_phi2  = phi1 | phi2
 You can chain as many operands as needed:
 
 ```python
-from stl import And, Or
+from pystl import And, Or
 
 conjunction = And(phi1, phi2, phi3)
 disjunction = Or(phi1, phi2, phi3)
@@ -49,7 +49,7 @@ disjunction = Or(phi1, phi2, phi3)
 All temporal operators take an `Interval(start, end)`, which is a closed integer interval **relative to the evaluation time `t`**. Setting `end=None` extends to the end of the signal.
 
 ```python
-from stl import Interval
+from pystl import Interval
 
 # phi holds at every step from t to t+4
 phi.always(Interval(0, 4))
@@ -93,7 +93,7 @@ phi.until(
 Choose a semantics with `create_semantics(syntax, backend=..., **kwargs)`. The syntax and backend are independent choices.
 
 ```python
-from stl import create_semantics
+from pystl import create_semantics
 
 sem = create_semantics("classical", backend="numpy")
 ```
@@ -173,7 +173,7 @@ All 15 syntax/backend combinations are available when the corresponding extras a
 ## Introspecting the registry
 
 ```python
-from stl import registry
+from pystl import registry
 
 registry.syntaxes()  # ['agm', 'classical', 'cumulative', 'dgmsr', 'smooth']
 registry.backends()  # depends on installed extras

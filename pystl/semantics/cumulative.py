@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from stl.semantics.base import Semantics
+from .base import Semantics
 
 
 @dataclass(frozen=True)

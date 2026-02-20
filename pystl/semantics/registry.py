@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from stl.semantics.base import Semantics
+from .base import Semantics
 
 SemanticsFactory = Callable[..., Semantics[Any]]
 

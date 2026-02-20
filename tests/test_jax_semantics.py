@@ -10,8 +10,8 @@ try:
 except ImportError as exc:
     pytest.skip(f"optional dependencies unavailable: {exc}", allow_module_level=True)
 
-from stl import And, Interval, Predicate, create_semantics
-from stl.semantics.stljax import StlJaxFormulaWrapper
+from pystl import And, Interval, Predicate, create_semantics
+from pystl.semantics.stljax import StlJaxFormulaWrapper
 
 # pylint: disable=redefined-outer-name
 

@@ -21,7 +21,7 @@ Use any JAX array as the signal. Pass `backend="jax"` to `create_semantics`:
 
 ```python
 import jax.numpy as jnp
-from stl import Predicate, Interval, create_semantics
+from pystl import Predicate, Interval, create_semantics
 
 signal = jnp.array([
     [0.2, 0.8],

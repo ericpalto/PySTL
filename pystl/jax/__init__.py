@@ -1,6 +1,6 @@
 """JAX-native STL semantics utilities."""
 
-from stl.jax.semantics import (
+from .semantics import (
     JaxCtstlSemantics,
     JaxDgmsrSemantics,
     JaxAgmRobustSemantics,
