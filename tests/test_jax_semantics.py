@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from stl import And, Interval, Predicate, create_semantics
 
-jax = pytest.importorskip("jax")
-jnp = pytest.importorskip("jax.numpy")
+try:
+    import jax
+    import jax.numpy as jnp
+    from stljax import utils as stljax_utils
+except ImportError as exc:
+    pytest.skip(f"optional dependencies unavailable: {exc}", allow_module_level=True)
+
+from stl import And, Interval, Predicate, create_semantics
+from stl.semantics.stljax import StlJaxFormulaWrapper
 
 # pylint: disable=redefined-outer-name
 
@@ -76,6 +82,89 @@ def test_jax_cumulative_matches_numpy_backend(
         assert float(val_jax.neg) == pytest.approx(val_np.neg, abs=1e-6)
 
 
+def test_jax_smooth_matches_numpy_backend(
+    signal_np: np.ndarray, signal_jax: jax.Array, predicates
+) -> None:
+    p1, p2 = predicates
+    formulas = [
+        (p1 & p2),
+        (p1 | ~p2),
+        p1.always((0, 2)),
+        p2.eventually((1, 3)),
+        p1.until(p2, interval=(0, 3)),
+    ]
+
+    sem_jax = create_semantics("smooth", backend="jax", temperature=0.25)
+    sem_np = create_semantics("smooth", backend="numpy", temperature=0.25)
+
+    for phi in formulas:
+        for t in [0, 1]:
+            v_jax = float(phi.evaluate(signal_jax, sem_jax, t=t))
+            v_np = float(phi.evaluate(signal_np, sem_np, t=t))
+            assert v_jax == pytest.approx(v_np, abs=1e-6)
+
+
+def test_smooth_temperature_matches_stljax_logsumexp() -> None:
+    vals = jnp.asarray([0.4, -0.2, 0.9, 0.1], dtype=float)
+    tau = 0.35
+    beta = 1.0 / tau
+
+    ours_max = float(tau * jax.scipy.special.logsumexp(vals / tau))
+    ours_min = float(-tau * jax.scipy.special.logsumexp(-vals / tau))
+
+    stljax_max = float(
+        stljax_utils.maxish(
+            vals,
+            axis=0,
+            keepdims=False,
+            approx_method="logsumexp",
+            temperature=beta,
+        )
+    )
+    stljax_min = float(
+        stljax_utils.minish(
+            vals,
+            axis=0,
+            keepdims=False,
+            approx_method="logsumexp",
+            temperature=beta,
+        )
+    )
+
+    assert stljax_max == pytest.approx(ours_max, abs=1e-6)
+    assert stljax_min == pytest.approx(ours_min, abs=1e-6)
+
+
+def test_smooth_matches_stljax_formula_robustness(
+    signal_np: np.ndarray, signal_jax: jax.Array, predicates
+) -> None:
+    p1, p2 = predicates
+    formulas = [
+        ((p1 & p2), [0, 1, 2, 3]),
+        ((p1 | ~p2), [0, 1, 2, 3]),
+        ((p1 & p2).always((0, 2)), [0, 1]),
+        ((p1 | ~p2).eventually((1, 3)), [0]),
+        (p1.until(p2, interval=(0, 3)), [0]),
+    ]
+
+    tau = 0.25
+    beta = 1.0 / tau
+    sem_np = create_semantics("smooth", backend="numpy", temperature=tau)
+    sem_jax = create_semantics("smooth", backend="jax", temperature=tau)
+
+    for phi, valid_t in formulas:
+        stljax_eval = StlJaxFormulaWrapper(
+            phi, approx_method="logsumexp", temperature=beta
+        )
+        stljax_trace = stljax_eval.robustness_trace(signal_np)
+        for t in valid_t:
+            ours_np = float(phi.evaluate(signal_np, sem_np, t=t))
+            ours_jax = float(phi.evaluate(signal_jax, sem_jax, t=t))
+            theirs = float(stljax_trace[t])
+            assert ours_np == pytest.approx(theirs, abs=1e-6)
+            assert ours_jax == pytest.approx(theirs, abs=1e-6)
+
+
 def test_jax_dgmsr_matches_numpy_backend_with_weights(
     signal_np: np.ndarray, signal_jax: jax.Array, predicates
 ) -> None:
@@ -107,6 +196,11 @@ def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> Non
     checks = [
         (
             create_semantics("classical", backend="jax"),
+            (p1 & p2).always((0, 2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("smooth", backend="jax", temperature=0.25),
             (p1 & p2).always((0, 2)),
             lambda v: v,
         ),
@@ -145,6 +239,11 @@ def test_jax_backends_are_jittable(signal_jax: jax.Array, predicates) -> None:
             lambda v: v,
         ),
         (
+            create_semantics("smooth", backend="jax", temperature=0.25),
+            (p1 & p2).always((0, 2)),
+            lambda v: v,
+        ),
+        (
             create_semantics("cumulative", backend="jax"),
             p1.eventually((0, 2)),
             lambda v: v.pos,
@@ -175,6 +274,11 @@ def test_jax_backends_are_vmappable(signal_jax: jax.Array, predicates) -> None:
     checks = [
         (
             create_semantics("classical", backend="jax"),
+            (p1 & p2).always((0, 2)),
+            lambda v: v,
+        ),
+        (
+            create_semantics("smooth", backend="jax", temperature=0.25),
             (p1 & p2).always((0, 2)),
             lambda v: v,
         ),

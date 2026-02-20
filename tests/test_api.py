@@ -33,6 +33,7 @@ def test_registry_contains_expected_semantics() -> None:
     names = set(registry.names())
     expected_numpy = {
         "classical/numpy",
+        "smooth/numpy",
         "cumulative/numpy",
         "dgmsr/numpy",
     }
@@ -40,12 +41,13 @@ def test_registry_contains_expected_semantics() -> None:
     if "jax" in registry.backends():
         assert names == expected_numpy | {
             "classical/jax",
+            "smooth/jax",
             "cumulative/jax",
             "dgmsr/jax",
         }
     else:
         assert names == expected_numpy
-    assert registry.syntaxes() == ["classical", "cumulative", "dgmsr"]
+    assert registry.syntaxes() == ["classical", "cumulative", "dgmsr", "smooth"]
     assert registry.backends() in (["jax", "numpy"], ["numpy"])
 
 
@@ -88,6 +90,28 @@ def test_until_with_classic_semantics(signal: np.ndarray, predicates) -> None:
         candidate = min(float(np.min(p1_trace[: i + 1])), float(p2_trace[i]))
         best = max(best, candidate)
     assert rho == pytest.approx(best, abs=1e-12)
+
+
+def test_smooth_and_or_are_soft_versions(signal: np.ndarray, predicates) -> None:
+    p1, p2 = predicates
+    sem = create_semantics("smooth", temperature=0.3)
+
+    and_val = float((p1 & p2).evaluate(signal, sem, t=0))
+    or_val = float((p1 | p2).evaluate(signal, sem, t=0))
+
+    vals = np.asarray([0.6 - signal[0, 0], signal[0, 1] - 0.2], dtype=float)
+    tau = 0.3
+    expected_and = float(-tau * np.log(np.sum(np.exp(-vals / tau))))
+    expected_or = float(tau * np.log(np.sum(np.exp(vals / tau))))
+
+    assert and_val == pytest.approx(expected_and, abs=1e-12)
+    assert or_val == pytest.approx(expected_or, abs=1e-12)
+
+    classical = create_semantics("classical")
+    classical_and = float((p1 & p2).evaluate(signal, classical, t=0))
+    classical_or = float((p1 | p2).evaluate(signal, classical, t=0))
+    assert and_val <= classical_and
+    assert or_val >= classical_or
 
 
 def test_interval_validation() -> None:

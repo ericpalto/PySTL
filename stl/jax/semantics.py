@@ -159,6 +159,13 @@ class JaxRobustSemantics(JaxClassicRobustSemantics):
         return jnp.max(arr, axis=0)
 
 
+class JaxSmoothRobustSemantics(JaxRobustSemantics):
+    """Smooth STL robustness using soft min/max aggregators."""
+
+    def __init__(self, *, temperature: float = 1.0) -> None:
+        super().__init__(smooth=True, temperature=temperature)
+
+
 @dataclass(frozen=True)
 class JaxCumulativeRobustness:
     """Container for cumulative positive/negative robustness values."""
@@ -570,6 +577,7 @@ class JaxStlJaxSemantics(Semantics[Any]):
 __all__ = [
     "JaxClassicRobustSemantics",
     "JaxRobustSemantics",
+    "JaxSmoothRobustSemantics",
     "JaxCumulativeRobustness",
     "JaxCumulativeSemantics",
     "jax_kth_largest",

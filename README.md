@@ -7,13 +7,14 @@ A Python repository implementing Signal Temporal Logic (STL) quantitative semant
 | STL Semantic | Sound (Sign-Preserving)? | Smooth | What Makes It Special | Citation |
 | --- | --- | --- | --- | --- |
 | Classical (Space) Robustness | Yes | No | Uses `min`/`max` and `inf`/`sup` style operators to compute signed distance to violation (worst-case semantics). | Donze, A., & Maler, O. (2010). *Robust Satisfaction of Temporal Logic over Real-Valued Signals*. In Formal Modeling and Analysis of Timed Systems (FORMATS). [doi:10.1007/978-3-642-15297-9_9](https://doi.org/10.1007/978-3-642-15297-9_9) |
+| Smooth Robustness | Approximate (temperature-dependent) | Yes | Replaces `min`/`max` by softmin/softmax (`logsumexp`) for differentiable approximations of classical robustness. | Leung K, Aréchiga N, Pavone M. *Backpropagation through signal temporal logic specifications: Infusing logical structure into gradient-based methods*. The International Journal of Robotics Research. 2022;42(6):356-370. [doi:10.1177/02783649221082115](https://doi.org/10.1177/02783649221082115) |
 | Cumulative Robustness | No (redefines satisfaction) | Usually no (piecewise) | Integrates robustness over time instead of only worst-case aggregation; captures sustained behavior. | Haghighi, I., Mehdipour, N., Bartocci, E., & Belta, C. (2019). *Control from Signal Temporal Logic Specifications with Smooth Cumulative Quantitative Semantics*. IEEE Control Systems Letters. [arXiv:1904.11611](https://arxiv.org/abs/1904.11611) |
 | D-GMSR Robustness | Yes | Mostly yes (except boundary points) | Reformulates `min`/`max` with structured generalized means; smooth while preserving sign semantics. | Uzun, S., et al. (2024). *Discrete Generalized Mean Smooth Robustness (D-GMSR) for Signal Temporal Logic*. [arXiv:2405.10996](https://arxiv.org/abs/2405.10996) |
 
 Supported syntax/backend combinations:
-- Syntaxes: `classical`, `cumulative`, `dgmsr`
+- Syntaxes: `classical`, `smooth`, `cumulative`, `dgmsr`
 - Backends: `numpy`, `jax`
-- Total combinations: 6 (`3 x 2`)
+- Total combinations: 8 (`4 x 2`)
 
 ## Documentation
 

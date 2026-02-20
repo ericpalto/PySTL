@@ -3,6 +3,7 @@ from __future__ import annotations
 from stl.semantics.base import Semantics
 from stl.semantics.ctstl import CtstlSemantics, tau_to_k, kth_largest
 from stl.semantics.dgmsr import DgmsrSemantics
+from stl.semantics.smooth import SmoothRobustSemantics
 from stl.semantics.classic import ClassicRobustSemantics
 from stl.semantics.registry import SemanticsRegistry
 from stl.semantics.cumulative import CumulativeSemantics, CumulativeRobustness
@@ -15,6 +16,7 @@ try:
         JaxDgmsrSemantics,
         JaxCumulativeSemantics,
         JaxCumulativeRobustness,
+        JaxSmoothRobustSemantics,
         JaxClassicRobustSemantics,
         jax_tau_to_k,
         jax_kth_largest,
@@ -26,12 +28,14 @@ else:
 
 registry = SemanticsRegistry()
 registry.register(syntax="classical", backend="numpy", factory=ClassicRobustSemantics)
+registry.register(syntax="smooth", backend="numpy", factory=SmoothRobustSemantics)
 registry.register(syntax="cumulative", backend="numpy", factory=CumulativeSemantics)
 registry.register(syntax="dgmsr", backend="numpy", factory=DgmsrSemantics)
 if _HAS_JAX:
     registry.register(
         syntax="classical", backend="jax", factory=JaxClassicRobustSemantics
     )
+    registry.register(syntax="smooth", backend="jax", factory=JaxSmoothRobustSemantics)
     registry.register(
         syntax="cumulative", backend="jax", factory=JaxCumulativeSemantics
     )
@@ -39,6 +43,7 @@ if _HAS_JAX:
 
 _SYNTAX_ALIASES = {
     "classical": "classical",
+    "smooth": "smooth",
     "cumulative": "cumulative",
     "dgmsr": "dgmsr",
 }
@@ -82,6 +87,7 @@ def create_semantics(syntax: str, *, backend: str = "numpy", **kwargs):
 __all__ = [
     "Semantics",
     "ClassicRobustSemantics",
+    "SmoothRobustSemantics",
     "CumulativeSemantics",
     "CumulativeRobustness",
     "CtstlSemantics",
@@ -96,6 +102,7 @@ if _HAS_JAX:
     __all__.extend(
         [
             "JaxClassicRobustSemantics",
+            "JaxSmoothRobustSemantics",
             "JaxCumulativeRobustness",
             "JaxCumulativeSemantics",
             "jax_kth_largest",

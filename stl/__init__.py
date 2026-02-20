@@ -5,6 +5,7 @@ from .semantics import (
     DgmsrSemantics,
     CumulativeSemantics,
     CumulativeRobustness,
+    SmoothRobustSemantics,
     ClassicRobustSemantics,
     registry,
     tau_to_k,
@@ -23,6 +24,7 @@ __all__ = [
     "Until",
     "Interval",
     "ClassicRobustSemantics",
+    "SmoothRobustSemantics",
     "CumulativeSemantics",
     "CumulativeRobustness",
     "CtstlSemantics",
@@ -40,6 +42,7 @@ try:
         JaxDgmsrSemantics,
         JaxCumulativeSemantics,
         JaxCumulativeRobustness,
+        JaxSmoothRobustSemantics,
         JaxClassicRobustSemantics,
         jax_tau_to_k,
         jax_kth_largest,
@@ -50,6 +53,7 @@ else:
     __all__.extend(
         [
             "JaxClassicRobustSemantics",
+            "JaxSmoothRobustSemantics",
             "JaxCumulativeRobustness",
             "JaxCumulativeSemantics",
             "jax_kth_largest",
