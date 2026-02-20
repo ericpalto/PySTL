@@ -1,36 +1,42 @@
 ---
-title: STL Documentation
-description: Unified STL API and semantics backends
+title: PySTL Documentation
+description: Unified STL robustness semantics for NumPy, JAX, and PyTorch
 ---
 
-# STL Documentation
+# PySTL
 
-This documentation is structured for GitHub-hosted docs (Markdown pages in `docs/` with front matter).
+A unified API for **Signal Temporal Logic (STL) robustness evaluation** across multiple semantics and computational backends.
+
+PySTL consolidates five STL quantitative semantics — Classical, Smooth, Cumulative, AGM, and D-GMSR — under one consistent interface. Switch semantics or backends without rewriting your formulas.
+
+```python
+from stl import Predicate, Interval, create_semantics
+
+phi = Predicate("x_positive", fn=lambda s, t: s[t, 0]).always(Interval(0, 4))
+
+rho_classical = phi.evaluate(signal, create_semantics("classical", backend="numpy"))
+rho_smooth    = phi.evaluate(signal, create_semantics("smooth",    backend="jax"))
+rho_agm       = phi.evaluate(signal, create_semantics("agm",       backend="torch"))
+```
 
 ## Contents
 
-- [Unified API Guide](./unified_api_guide.md)
+- [Installation](./installation.md)
+- [Quick Start](./quickstart.md)
+- [A Unified API](./unified_api.md)
+- Backends
+  - [JAX](./backends/jax.md)
+  - [PyTorch](./backends/pytorch.md)
+- [API Reference](./api_reference.md)
 
-## Quick Example
+## Supported Semantics
 
-```python
-import numpy as np
-from stl import Predicate, Interval, create_semantics
+| Semantic | Smooth | Sign-preserving | Key idea |
+|---|---|---|---|
+| `classical` | No | Yes | `min`/`max` worst-case robustness |
+| `smooth` | Yes | Approx. | Softmin/softmax via `logsumexp` |
+| `cumulative` | Piecewise | No | Integrates robustness over time |
+| `agm` | Piecewise | Yes | Arithmetic-Geometric Mean blending |
+| `dgmsr` | Mostly yes | Yes | Generalized means, smooth + sign-safe |
 
-signal = np.array(
-    [
-        [0.2, 0.8],
-        [0.3, 0.6],
-        [0.5, 0.4],
-    ],
-    dtype=float,
-)
-
-p1 = Predicate("speed_ok", fn=lambda s, t: 0.6 - s[t, 0])
-p2 = Predicate("alt_ok", fn=lambda s, t: s[t, 1] - 0.2)
-
-phi = (p1 & p2).always(Interval(0, 2))
-sem = create_semantics("classical", backend="numpy")
-rho = phi.evaluate(signal, sem, t=0)
-print(rho)
-```
+Each semantic is available on three backends: `numpy`, `jax`, and `torch`.
