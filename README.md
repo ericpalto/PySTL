@@ -50,7 +50,12 @@ By unifying formal STL semantics with modern ML tooling, PySTL turns robustness 
 ## Documentation
 
 - [Docs index](docs/index.md)
-- [Unified API guide](docs/unified_api_guide.md)
+- [Installation](docs/installation.md)
+- [Quick Start](docs/quickstart.md)
+- [A Unified API](docs/unified_api.md)
+- [JAX backend](docs/backends/jax.md)
+- [PyTorch backend](docs/backends/pytorch.md)
+- [API Reference](docs/api_reference.md)
 
 ## Implemented STL Logics
 

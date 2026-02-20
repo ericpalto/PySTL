@@ -1,0 +1,33 @@
+title: PySTL
+description: Unified STL robustness semantics for NumPy, JAX, and PyTorch
+
+theme: jekyll-theme-cayman
+
+# GitHub Pages project site settings (repo: ericpalto/PySTL).
+url: https://ericpalto.github.io
+baseurl: /PySTL
+repository: ericpalto/PySTL
+
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+
+# Allow this plugin to run even when using `jekyll --safe` (as in CI).
+whitelist:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+
+# Rewrite Markdown links like `./foo.md` -> `./foo.html` in the built site.
+relative_links:
+  enabled: true
+  collections: false
+
+# Match GitHub-flavored Markdown features (tables, etc.).
+kramdown:
+  input: GFM
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
