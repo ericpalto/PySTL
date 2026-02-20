@@ -14,8 +14,8 @@ A Python repository implementing Signal Temporal Logic (STL) quantitative semant
 
 Supported syntax/backend combinations:
 - Syntaxes: `classical`, `smooth`, `cumulative`, `agm`, `dgmsr`
-- Backends: `numpy`, `jax`
-- Total combinations: 10 (`5 x 2`)
+- Backends: `numpy` (default), `jax` (with `--extra jax`), `torch` (with `--extra torch`)
+- Total combinations: 15 (`5 x 3`) when all extras are installed
 
 ## Documentation
 
