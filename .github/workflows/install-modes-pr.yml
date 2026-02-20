@@ -52,12 +52,12 @@ jobs:
       - name: Verify backend availability
         run: |
           if [ "${{ matrix.mode }}" = "jax" ]; then
-            uv run python -c "from stl import registry; assert 'jax' in registry.backends()"
+            uv run python -c "from pystl import registry; assert 'jax' in registry.backends()"
           elif [ "${{ matrix.mode }}" = "torch" ]; then
-            uv run python -c "from stl import registry; assert 'torch' in registry.backends()"
+            uv run python -c "from pystl import registry; assert 'torch' in registry.backends()"
             uv run python -c "import torch; assert torch.__version__"
           else
-            uv run python -c "from stl import registry; assert registry.backends() == ['numpy']"
+            uv run python -c "from pystl import registry; assert registry.backends() == ['numpy']"
           fi
 
       - name: Verify dev tools availability
@@ -77,9 +77,9 @@ jobs:
         if: matrix.profile == 'regular'
         run: |
           if [ "${{ matrix.mode }}" = "jax" ]; then
-            uv run python -c "import jax.numpy as jnp; from stl import Predicate, create_semantics; s = jnp.asarray([[0.1], [0.2]]); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='jax'); float(p.evaluate(s, sem, t=0))"
+            uv run python -c "import jax.numpy as jnp; from pystl import Predicate, create_semantics; s = jnp.asarray([[0.1], [0.2]]); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='jax'); float(p.evaluate(s, sem, t=0))"
           elif [ "${{ matrix.mode }}" = "torch" ]; then
-            uv run python -c "import torch; from stl import Predicate, create_semantics; s = torch.tensor([[0.1], [0.2]], dtype=torch.float64); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='torch'); float(p.evaluate(s, sem, t=0))"
+            uv run python -c "import torch; from pystl import Predicate, create_semantics; s = torch.tensor([[0.1], [0.2]], dtype=torch.float64); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='torch'); float(p.evaluate(s, sem, t=0))"
           else
-            uv run python -c "import numpy as np; from stl import Predicate, create_semantics; s = np.asarray([[0.1], [0.2]], dtype=float); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='numpy'); float(p.evaluate(s, sem, t=0))"
+            uv run python -c "import numpy as np; from pystl import Predicate, create_semantics; s = np.asarray([[0.1], [0.2]], dtype=float); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='numpy'); float(p.evaluate(s, sem, t=0))"
           fi
