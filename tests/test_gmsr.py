@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from pystl.dgmsr import gmsr_or, gmsr_and, gmsr_until
+from pystl.semantics._dgmsr import gmsr_or, gmsr_and, gmsr_until
 
 # pylint: disable=redefined-outer-name
 
