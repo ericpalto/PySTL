@@ -3,6 +3,7 @@ from .api import Or, And, Not, Until, Always, Formula, Interval, Predicate, Even
 from .semantics import (
     CtstlSemantics,
     DgmsrSemantics,
+    AgmRobustSemantics,
     CumulativeSemantics,
     CumulativeRobustness,
     SmoothRobustSemantics,
@@ -25,6 +26,7 @@ __all__ = [
     "Interval",
     "ClassicRobustSemantics",
     "SmoothRobustSemantics",
+    "AgmRobustSemantics",
     "CumulativeSemantics",
     "CumulativeRobustness",
     "CtstlSemantics",
@@ -40,6 +42,7 @@ try:
     from .semantics import (
         JaxCtstlSemantics,
         JaxDgmsrSemantics,
+        JaxAgmRobustSemantics,
         JaxCumulativeSemantics,
         JaxCumulativeRobustness,
         JaxSmoothRobustSemantics,
@@ -54,6 +57,7 @@ else:
         [
             "JaxClassicRobustSemantics",
             "JaxSmoothRobustSemantics",
+            "JaxAgmRobustSemantics",
             "JaxCumulativeRobustness",
             "JaxCumulativeSemantics",
             "jax_kth_largest",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from stl.semantics.agm import AgmRobustSemantics
 from stl.semantics.base import Semantics
 from stl.semantics.ctstl import CtstlSemantics, tau_to_k, kth_largest
 from stl.semantics.dgmsr import DgmsrSemantics
@@ -14,6 +15,7 @@ try:
     from stl.jax import (
         JaxCtstlSemantics,
         JaxDgmsrSemantics,
+        JaxAgmRobustSemantics,
         JaxCumulativeSemantics,
         JaxCumulativeRobustness,
         JaxSmoothRobustSemantics,
@@ -31,6 +33,7 @@ registry.register(syntax="classical", backend="numpy", factory=ClassicRobustSema
 registry.register(syntax="smooth", backend="numpy", factory=SmoothRobustSemantics)
 registry.register(syntax="cumulative", backend="numpy", factory=CumulativeSemantics)
 registry.register(syntax="dgmsr", backend="numpy", factory=DgmsrSemantics)
+registry.register(syntax="agm", backend="numpy", factory=AgmRobustSemantics)
 if _HAS_JAX:
     registry.register(
         syntax="classical", backend="jax", factory=JaxClassicRobustSemantics
@@ -40,12 +43,15 @@ if _HAS_JAX:
         syntax="cumulative", backend="jax", factory=JaxCumulativeSemantics
     )
     registry.register(syntax="dgmsr", backend="jax", factory=JaxDgmsrSemantics)
+    registry.register(syntax="agm", backend="jax", factory=JaxAgmRobustSemantics)
 
 _SYNTAX_ALIASES = {
     "classical": "classical",
     "smooth": "smooth",
     "cumulative": "cumulative",
     "dgmsr": "dgmsr",
+    "agm": "agm",
+    "arithmetic_geometric_mean": "agm",
 }
 _BACKEND_ALIASES = {
     "numpy": "numpy",
@@ -94,6 +100,7 @@ __all__ = [
     "kth_largest",
     "tau_to_k",
     "DgmsrSemantics",
+    "AgmRobustSemantics",
     "SemanticsRegistry",
     "registry",
     "create_semantics",
@@ -109,5 +116,6 @@ if _HAS_JAX:
             "jax_tau_to_k",
             "JaxCtstlSemantics",
             "JaxDgmsrSemantics",
+            "JaxAgmRobustSemantics",
         ]
     )
