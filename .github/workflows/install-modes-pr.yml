@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [numpy, jax]
+        mode: [numpy, jax, torch]
         profile: [regular, dev]
 
     steps:
@@ -34,12 +34,16 @@ jobs:
           if [ "${{ matrix.profile }}" = "dev" ]; then
             if [ "${{ matrix.mode }}" = "jax" ]; then
               uv sync --dev --extra jax
+            elif [ "${{ matrix.mode }}" = "torch" ]; then
+              uv sync --dev --extra torch
             else
               uv sync --dev
             fi
           else
             if [ "${{ matrix.mode }}" = "jax" ]; then
               uv sync --extra jax
+            elif [ "${{ matrix.mode }}" = "torch" ]; then
+              uv sync --extra torch
             else
               uv sync
             fi
@@ -49,6 +53,9 @@ jobs:
         run: |
           if [ "${{ matrix.mode }}" = "jax" ]; then
             uv run python -c "from stl import registry; assert 'jax' in registry.backends()"
+          elif [ "${{ matrix.mode }}" = "torch" ]; then
+            uv run python -c "from stl import registry; assert registry.backends() == ['numpy']"
+            uv run python -c "import torch; assert torch.__version__"
           else
             uv run python -c "from stl import registry; assert registry.backends() == ['numpy']"
           fi
@@ -71,6 +78,8 @@ jobs:
         run: |
           if [ "${{ matrix.mode }}" = "jax" ]; then
             uv run python -c "import jax.numpy as jnp; from stl import Predicate, create_semantics; s = jnp.asarray([[0.1], [0.2]]); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='jax'); float(p.evaluate(s, sem, t=0))"
+          elif [ "${{ matrix.mode }}" = "torch" ]; then
+            uv run python -c "import torch; from stl import Predicate, create_semantics; s = torch.tensor([[0.1], [0.2]], dtype=torch.float64); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='numpy'); float(p.evaluate(s, sem, t=0))"
           else
             uv run python -c "import numpy as np; from stl import Predicate, create_semantics; s = np.asarray([[0.1], [0.2]], dtype=float); p = Predicate('p', fn=lambda sig, t: 0.3 - sig[t, 0]); sem = create_semantics('classical', backend='numpy'); float(p.evaluate(s, sem, t=0))"
           fi
