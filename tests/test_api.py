@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from stl import Or, And, Interval, Predicate, create_semantics
-from stl.semantics import registry
+from pystl import Or, And, Interval, Predicate, create_semantics
+from pystl.semantics import registry
 
 # pylint: disable=redefined-outer-name
 

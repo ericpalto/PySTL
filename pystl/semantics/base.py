@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, Optional, Sequence, Typ
 from numpy.typing import NDArray
 
 if TYPE_CHECKING:
-    from stl.api import Predicate
+    from ..api import Predicate
 
 
 Signal: TypeAlias = NDArray[Any]

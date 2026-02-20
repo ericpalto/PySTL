@@ -28,7 +28,7 @@ signal = np.array([
 A `Predicate` is the atomic building block of an STL formula. Its `fn` maps `(signal, t)` to a scalar: positive means satisfied, negative means violated.
 
 ```python
-from stl import Predicate
+from pystl import Predicate
 
 # speed < 0.6  →  0.6 - signal[t, 0] > 0 when satisfied
 p_speed = Predicate("speed_ok", fn=lambda s, t: 0.6 - s[t, 0])
@@ -42,7 +42,7 @@ p_alt = Predicate("alt_ok", fn=lambda s, t: s[t, 1] - 0.2)
 Boolean and temporal operators compose predicates into full STL formulas.
 
 ```python
-from stl import Interval
+from pystl import Interval
 
 # Both conditions must hold at every time step in [0, 3]
 phi = (p_speed & p_alt).always(Interval(0, 3))
@@ -66,7 +66,7 @@ Available operators:
 Choose a semantics and call `evaluate`:
 
 ```python
-from stl import create_semantics
+from pystl import create_semantics
 
 sem = create_semantics("classical", backend="numpy")
 rho = phi.evaluate(signal, sem, t=0)
@@ -94,7 +94,7 @@ Install the JAX extra (`uv sync --extra jax`), then use any JAX-compatible seman
 ```python
 import jax
 import jax.numpy as jnp
-from stl import create_semantics
+from pystl import create_semantics
 
 signal_jax = jnp.asarray(signal)
 sem_jax = create_semantics("smooth", backend="jax", temperature=0.5)

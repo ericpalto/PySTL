@@ -107,7 +107,7 @@ pip install -e ".[torch]"
 
 ```python
 import numpy as np
-from stl import Predicate, Interval, create_semantics
+from pystl import Predicate, Interval, create_semantics
 
 # signal shape: (time, state_dim)
 signal = np.array([
@@ -131,7 +131,7 @@ JAX semantics + gradients:
 ```python
 import jax
 import jax.numpy as jnp
-from stl import create_semantics
+from pystl import create_semantics
 
 signal_jax = jnp.asarray(signal)
 sem_jax = create_semantics("classical", backend="jax")

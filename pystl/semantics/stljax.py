@@ -11,10 +11,10 @@ import jax.numpy as jnp
 import stljax.formula as stljax_formula
 from stljax import utils as stljax_utils
 
-from stl.semantics.base import Semantics
+from .base import Semantics
 
 if TYPE_CHECKING:
-    from stl.api import Formula
+    from ..api import Formula
 
 
 def _ensure_no_weights(weights: Optional[Sequence[float]], where: str) -> None:
@@ -35,9 +35,9 @@ def _to_stljax_interval(start: int, end: Optional[int]):
 def to_stljax_formula(formula: "Formula"):
     """Convert unified API `Formula` into a native `stljax.formula` object."""
 
-    # Delayed import avoids circular dependency with stl.api -> stl.semantics.
+    # Delayed import avoids circular dependency with pystl.api -> pystl.semantics.
     # pylint: disable=import-outside-toplevel
-    from stl.api import Or, And, Not, Until, Always, Predicate, Eventually
+    from ..api import Or, And, Not, Until, Always, Predicate, Eventually
 
     if isinstance(formula, Predicate):
         if formula.fn is None:

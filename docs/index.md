@@ -10,7 +10,7 @@ A unified API for **Signal Temporal Logic (STL) robustness evaluation** across m
 PySTL consolidates five STL quantitative semantics — Classical, Smooth, Cumulative, AGM, and D-GMSR — under one consistent interface. Switch semantics or backends without rewriting your formulas.
 
 ```python
-from stl import Predicate, Interval, create_semantics
+from pystl import Predicate, Interval, create_semantics
 
 phi = Predicate("x_positive", fn=lambda s, t: s[t, 0]).always(Interval(0, 4))
 

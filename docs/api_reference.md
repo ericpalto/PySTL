@@ -8,7 +8,7 @@ description: Complete reference for all PySTL classes and functions
 All public symbols are importable from the top-level `stl` package.
 
 ```python
-from stl import (
+from pystl import (
     Predicate, Interval,
     Formula, Not, And, Or, Always, Eventually, Until,
     create_semantics, registry,
@@ -228,7 +228,7 @@ Returns all registered `"syntax/backend"` strings.
 **Example:**
 
 ```python
-from stl import registry
+from pystl import registry
 
 registry.syntaxes()  # ['agm', 'classical', 'cumulative', 'dgmsr', 'smooth']
 registry.backends()  # ['numpy'] or ['jax', 'numpy', 'torch']
