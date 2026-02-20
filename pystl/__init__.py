@@ -1,4 +1,3 @@
-from . import dgmsr
 from .api import Or, And, Not, Until, Always, Formula, Interval, Predicate, Eventually
 from .semantics import (
     CtstlSemantics,
@@ -35,7 +34,6 @@ __all__ = [
     "DgmsrSemantics",
     "create_semantics",
     "registry",
-    "dgmsr",
 ]
 
 try:

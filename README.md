@@ -140,6 +140,14 @@ rho0_jax = phi.evaluate(signal_jax, sem_jax, t=0)
 grad0 = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(signal_jax)
 ```
 
+NumPy D-GMSR semantics + gradients:
+
+```python
+sem_dgmsr = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
+rho0, grad0 = phi.evaluate_with_grad(signal, sem_dgmsr, t=0)
+print(grad0.shape)  # (time, state_dim)
+```
+
 ## Contributing
 
 Everyone is welcome to contribute.

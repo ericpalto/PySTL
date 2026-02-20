@@ -22,6 +22,7 @@ from .semantics.base import Semantics
 
 Signal: TypeAlias = NDArray[np.float64]
 PredicateFn = Callable[[Signal, int], Any]
+PredicateGradFn = Callable[[Signal, int], NDArray[np.float64] | Sequence[float]]
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,22 @@ class Formula(ABC):
     @abstractmethod
     def evaluate(self, signal: Signal, semantics: Semantics[Any], t: int = 0) -> Any:
         pass
+
+    def evaluate_with_grad(
+        self, signal: Signal, semantics: Semantics[Any], t: int = 0, **kwargs: Any
+    ) -> tuple[Any, NDArray[np.float64]]:
+        """Evaluate robustness and gradient w.r.t. the full signal trace.
+
+        This requires a semantics backend that implements `evaluate_with_grad`.
+        """
+
+        evaluator = getattr(semantics, "evaluate_with_grad", None)
+        if evaluator is None:
+            raise NotImplementedError(
+                f"{type(semantics).__name__} does not support gradients."
+            )
+        value, grad = evaluator(self, signal, t=t, **kwargs)
+        return value, np.asarray(grad, dtype=float)
 
     def __and__(self, other: "Formula") -> "And":
         return And(self, other)
@@ -114,6 +131,7 @@ class Predicate(Formula):
     name: str
     fn: Optional[PredicateFn] = None
     metadata: dict[str, Any] | None = None
+    grad: Optional[PredicateGradFn] = None
 
     def evaluate(self, signal: Signal, semantics: Semantics[Any], t: int = 0) -> Any:
         return semantics.predicate(self, signal, t)

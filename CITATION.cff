@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "PySTL"
+message: "If you use this software, please cite it."
+authors:
+  - family-names: "Palanques Tost"
+    given-names: "Eric"
+    orcid: "0000-0002-0783-9779"
+version: 1.0.0
+date-released: 2026-02-20
+repository-code: "https://github.com/ericpalto/PySTL"
+license: MIT
+abstract: >
+  PySTL is a unified API that consolidates different
+  Signal Temporal Logic (STL) semantics under a single
+  interface with native support for NumPy, JAX and PyTorch.

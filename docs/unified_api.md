@@ -148,6 +148,18 @@ sem = create_semantics("dgmsr", backend="jax",   eps=1e-8, p=2)
 sem = create_semantics("dgmsr", backend="torch",  eps=1e-8, p=2)
 ```
 
+#### NumPy gradients (D-GMSR only)
+
+With the NumPy backend, D-GMSR supports explicit gradients w.r.t. the full signal trace:
+
+```python
+sem_dgmsr_np = create_semantics("dgmsr", backend="numpy", eps=1e-8, p=2)
+rho0, grad0 = phi.evaluate_with_grad(signal, sem_dgmsr_np, t=0)
+print(grad0.shape)  # (time, state_dim)
+```
+
+For best results, provide an analytic predicate gradient via `Predicate(..., grad=...)`. If `grad` is omitted, PySTL falls back to finite-difference gradients for that predicate.
+
 ## Semantics matrix
 
 All 15 syntax/backend combinations are available when the corresponding extras are installed:
