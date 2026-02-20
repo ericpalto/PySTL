@@ -5,7 +5,7 @@ description: How to install PySTL with optional JAX and PyTorch backends
 
 # Installation
 
-PySTL requires Python 3.12 or later. The core package depends only on NumPy. JAX and PyTorch support are optional extras.
+PySTL requires Python 3.11 or later. The core package depends only on NumPy. JAX and PyTorch support are optional extras.
 
 ## Using uv (recommended)
 
