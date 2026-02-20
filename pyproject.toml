@@ -1,7 +1,7 @@
 [project]
-name = "stl"
+name = "pystl"
 version = "0.1.0"
-description = "Add your description here"
+description = "Unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
@@ -13,7 +13,6 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=2.4.2",
-    "pandas>=3.0.1",
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,8 @@
 # PySTL
 
+>A unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
+
+
 [![Tests](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml)
 [![Docs](https://img.shields.io/website?url=https%3A%2F%2Fericpalto.github.io%2FPySTL%2F&label=docs&logo=readthedocs)](https://ericpalto.github.io/PySTL/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
@@ -10,7 +13,44 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
-A Python repository implementing Signal Temporal Logic (STL) quantitative semantics with an explicit syntax/backend split.
+ 🚀 **TL;DR**
+
+Unified, backend-agnostic STL robustness semantics in one API.  Switch semantics. Switch backend. Keep the same specification:
+
+ - One API
+ - Multiple STL semantics (Classic, soft, cumulative, D-GMSR... and more!)
+ - NumPy / JAX / PyTorch backends
+ - Autograd & GPU ready
+
+---
+
+**Why?**
+
+STL robustness definitions are scattered across separate repositories, programming languages, and incompatible interfaces. Classical, smooth, cumulative, AGM, and D-GMSR semantics often live in isolation, making comparisons and experimentation unnecessarily difficult.
+
+PySTL consolidates them under a single, consistent API. The same STL specification can be evaluated under different quantitative semantics without rewriting logic or changing infrastructure.
+
+---
+
+**How?**
+
+Under PySTL's unified API, switching semantics is as simple as changing a function argument. Switching backend (NumPy, JAX, PyTorch) is equally straightforward, enabling automatic differentiation and GPU acceleration out of the box.
+
+```python
+sem_jax = create_semantics("AGM", backend="jax")
+```
+All semantics share the same internal interface and operator implementation (AND, OR, NOT, Always, Eventually, Until), ensuring consistent behavior across backends.
+
+---
+
+PySTL runs natively on NumPy, JAX, and PyTorch, making every supported semantics immediately usable in gradient-based control synthesis, reinforcement learning, and differentiable optimization pipelines. This includes semantics that were not originally designed for autograd workflows.
+
+By unifying formal STL semantics with modern ML tooling, PySTL turns robustness evaluation from a fragmented research artifact into a backend-agnostic building block for verification, control, and learning over time-series signals.
+
+## Documentation
+
+- [Docs index](docs/index.md)
+- [Unified API guide](docs/unified_api_guide.md)
 
 ## Implemented STL Logics
 
@@ -27,10 +67,6 @@ Supported syntax/backend combinations:
 - Backends: `numpy` (default), `jax` (with `--extra jax`), `torch` (with `--extra torch`)
 - Total combinations: 15 (`5 x 3`) when all extras are installed
 
-## Documentation
-
-- [Docs index](docs/index.md)
-- [Unified API guide](docs/unified_api_guide.md)
 
 ## Installation
 
@@ -61,33 +97,6 @@ pip install -e ".[jax]"
 # NumPy + PyTorch install
 pip install -e ".[torch]"
 ```
-
-## Contributing
-
-Everyone is welcome to contribute.
-Development install using `uv`:
-
-```bash
-# Dev install (adds pytest + pre-commit), NumPy-only
-uv sync --dev
-pre-commit install
-
-# Dev install (adds pytest + pre-commit), NumPy + JAX
-uv sync --dev --extra jax
-pre-commit install
-
-# Dev install (adds pytest + pre-commit), NumPy + PyTorch
-uv sync --dev --extra torch
-pre-commit install
-```
-
-Instructions:
-
-1. Create a feature branch for your change.
-2. Implement the change with tests and docs updates when relevant.
-3. Run checks locally (`uv run pytest`).
-4. Linter should run automatically on commit.
-5. Open a pull request.
 
 ## Quick Start
 
@@ -126,6 +135,34 @@ rho0_jax = phi.evaluate(signal_jax, sem_jax, t=0)
 grad0 = jax.grad(lambda s: phi.evaluate(s, sem_jax, t=0))(signal_jax)
 ```
 
+## Contributing
+
+Everyone is welcome to contribute.
+Development install using `uv`:
+
+```bash
+# Dev install (adds pytest + pre-commit), NumPy-only
+uv sync --dev
+pre-commit install
+
+# Dev install (adds pytest + pre-commit), NumPy + JAX
+uv sync --dev --extra jax
+pre-commit install
+
+# Dev install (adds pytest + pre-commit), NumPy + PyTorch
+uv sync --dev --extra torch
+pre-commit install
+```
+
+Instructions:
+
+1. Create a feature branch for your change.
+2. Implement the change with tests and docs updates when relevant.
+3. Run checks locally (`uv run pytest`).
+4. Linter should run automatically on commit.
+5. Open a pull request.
+
+
 ## License
 
-This project is licensed under the MIT License. See `LICENSE` for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
