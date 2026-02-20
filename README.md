@@ -201,3 +201,17 @@ Instructions:
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Citation
+
+If you use PySTL in your research, please cite it as:
+
+```bibtex
+@software{palanques_tost_2026_pystl,
+  author       = {Palanques Tost, Eric},
+  title        = {PySTL},
+  year         = 2026,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.18707962},
+  url          = {https://doi.org/10.5281/zenodo.18707962}
+}
