@@ -1,5 +1,8 @@
 # PySTL
 
+>A unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
+
+
 [![Tests](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml)
 [![Docs](https://img.shields.io/website?url=https%3A%2F%2Fericpalto.github.io%2FPySTL%2F&label=docs&logo=readthedocs)](https://ericpalto.github.io/PySTL/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
@@ -10,15 +13,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
-> **PySTL** is a unified API that consolidates different Signal Temporal Logic (STL) semantics under a single interface with native support for NumPy, JAX and PyTorch.
-
  🚀 **TL;DR**
+
+Unified, backend-agnostic STL robustness semantics in one API.  Switch semantics. Switch backend. Keep the same specification:
+
  - One API
  - Multiple STL semantics (Classic, soft, cumulative, D-GMSR... and more!)
  - NumPy / JAX / PyTorch backends
  - Autograd & GPU ready
-
- ... All under a unified API!
 
 ---
 
