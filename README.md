@@ -1,7 +1,7 @@
 # PySTL
 
 [![Tests](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml/badge.svg?event=pull_request)](https://github.com/ericpalto/PySTL/actions/workflows/tests.yml)
-[![Docs Site](https://img.shields.io/website?url=https%3A%2F%2Fericpalto.github.io%2FPySTL%2F&label=docs)](https://ericpalto.github.io/PySTL/)
+[![Docs Build](https://github.com/ericpalto/PySTL/actions/workflows/docs.yml/badge.svg)](https://github.com/ericpalto/PySTL/actions/workflows/docs.yml)
 [![GitHub Pages Deploy](https://img.shields.io/github/deployments/ericpalto/PySTL/github-pages?label=github-pages)](https://github.com/ericpalto/PySTL/deployments)
 ![Env](https://img.shields.io/badge/env-numpy%20%7C%20jax%20%7C%20torch-informational)
 ![GitHub stars](https://img.shields.io/github/stars/ericpalto/PySTL?style=social)
