@@ -76,27 +76,6 @@ def test_jax_cumulative_matches_numpy_backend(
         assert float(val_jax.neg) == pytest.approx(val_np.neg, abs=1e-6)
 
 
-def test_jax_ctstl_matches_numpy_backend(
-    signal_np: np.ndarray, signal_jax: jax.Array, predicates
-) -> None:
-    p1, p2 = predicates
-    phi = p1.until(p2, interval=(0, 3))
-
-    sem_jax = create_semantics("ctstl", backend="jax", delta=1.0)
-    sem_np = create_semantics("ctstl", backend="numpy", delta=1.0)
-
-    rho_jax = float(phi.evaluate(signal_jax, sem_jax, t=0))
-    rho_np = float(phi.evaluate(signal_np, sem_np, t=0))
-    assert rho_jax == pytest.approx(rho_np, abs=1e-6)
-
-    vals_jax = [p1.evaluate(signal_jax, sem_jax, t=t) for t in [0, 1, 2, 3]]
-    vals_np = [p1.evaluate(signal_np, sem_np, t=t) for t in [0, 1, 2, 3]]
-
-    rho_c_jax = float(sem_jax.temporal_cumulative(vals_jax, tau=2.0))
-    rho_c_np = float(sem_np.temporal_cumulative(vals_np, tau=2.0))
-    assert rho_c_jax == pytest.approx(rho_c_np, abs=1e-6)
-
-
 def test_jax_dgmsr_matches_numpy_backend_with_weights(
     signal_np: np.ndarray, signal_jax: jax.Array, predicates
 ) -> None:
@@ -137,11 +116,6 @@ def test_jax_backends_support_autograd(signal_jax: jax.Array, predicates) -> Non
             lambda v: v.pos,
         ),
         (
-            create_semantics("ctstl", backend="jax", delta=1.0),
-            p1.until(p2, interval=(0, 3)),
-            lambda v: v,
-        ),
-        (
             create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
             lambda v: v,
@@ -174,11 +148,6 @@ def test_jax_backends_are_jittable(signal_jax: jax.Array, predicates) -> None:
             create_semantics("cumulative", backend="jax"),
             p1.eventually((0, 2)),
             lambda v: v.pos,
-        ),
-        (
-            create_semantics("ctstl", backend="jax", delta=1.0),
-            p1.until(p2, interval=(0, 3)),
-            lambda v: v,
         ),
         (
             create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
@@ -215,11 +184,6 @@ def test_jax_backends_are_vmappable(signal_jax: jax.Array, predicates) -> None:
             lambda v: v.pos,
         ),
         (
-            create_semantics("ctstl", backend="jax", delta=1.0),
-            p1.until(p2, interval=(0, 3)),
-            lambda v: v,
-        ),
-        (
             create_semantics("dgmsr", backend="jax", eps=1e-8, p=1),
             p1.until(p2, interval=(0, 3), weights_pair=(1.0, 1.2)),
             lambda v: v,
@@ -248,3 +212,8 @@ def test_jax_backends_are_vmappable(signal_jax: jax.Array, predicates) -> None:
         vmapped = jax.vmap(objective, in_axes=0)(batch)
         assert vmapped.shape == (batch.shape[0],)
         assert np.all(np.isfinite(np.asarray(vmapped)))
+
+
+def test_jax_ctstl_syntax_is_disabled() -> None:
+    with pytest.raises(KeyError):
+        create_semantics("ctstl", backend="jax", delta=1.0)
