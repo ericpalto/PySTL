@@ -75,6 +75,25 @@ def _window_slice(
     raise ValueError(f"Unsupported padding={padding!r}.")
 
 
+def _valid_time_count(*, horizon: int, start: int, end: Optional[int]) -> int:
+    """Number of time indices `t` for which the window is well-defined.
+
+    This reference implementation mirrors the common convention that temporal
+    operators are only defined when their entire lookahead fits within the
+    signal horizon (i.e. no implicit clipping).
+    """
+
+    if horizon < 0:
+        raise ValueError("horizon must be >= 0.")
+    if start < 0:
+        raise ValueError("start must be >= 0.")
+    if end is None:
+        return max(0, horizon - start)
+    if end < start:
+        raise ValueError("end must be >= start.")
+    return max(0, horizon - end)
+
+
 def _minmax_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
     return {
         "approx_method": kwargs.get("approx_method", "true"),
@@ -171,7 +190,7 @@ class Always:
         horizon = int(child_trace.shape[0])
 
         out: list[Any] = []
-        for t in range(horizon):
+        for t in range(_valid_time_count(horizon=horizon, start=start, end=end)):
             window = _window_slice(
                 child_trace, t=t, start=start, end=end, padding=padding
             )
@@ -217,7 +236,7 @@ class Eventually:
         horizon = int(child_trace.shape[0])
 
         out: list[Any] = []
-        for t in range(horizon):
+        for t in range(_valid_time_count(horizon=horizon, start=start, end=end)):
             window = _window_slice(
                 child_trace, t=t, start=start, end=end, padding=padding
             )
@@ -270,7 +289,7 @@ class Until:
         start, end = _interval_to_bounds(self.interval)
         horizon = int(left_trace.shape[0])
         out: list[Any] = []
-        for t in range(horizon):
+        for t in range(_valid_time_count(horizon=horizon, start=start, end=end)):
             left_sub = left_trace[t:]
             right_sub = right_trace[t:]
             sub_horizon = int(left_sub.shape[0])
