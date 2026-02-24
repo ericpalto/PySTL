@@ -6,12 +6,12 @@ import pytest
 try:
     import jax
     import jax.numpy as jnp
-    from stljax import utils as stljax_utils
 except ImportError as exc:
     pytest.skip(f"optional dependencies unavailable: {exc}", allow_module_level=True)
 
 from pystl import And, Interval, Predicate, create_semantics
-from pystl.semantics.stljax import StlJaxFormulaWrapper
+from pystl.jax.reference import JaxReferenceFormulaWrapper
+from pystl.jax.aggregators import maxish, minish
 
 # pylint: disable=redefined-outer-name
 
@@ -104,7 +104,7 @@ def test_jax_smooth_matches_numpy_backend(
             assert v_jax == pytest.approx(v_np, abs=1e-6)
 
 
-def test_smooth_temperature_matches_stljax_logsumexp() -> None:
+def test_smooth_temperature_matches_logsumexp_aggregator() -> None:
     vals = jnp.asarray([0.4, -0.2, 0.9, 0.1], dtype=float)
     tau = 0.35
     beta = 1.0 / tau
@@ -112,30 +112,22 @@ def test_smooth_temperature_matches_stljax_logsumexp() -> None:
     ours_max = float(tau * jax.scipy.special.logsumexp(vals / tau))
     ours_min = float(-tau * jax.scipy.special.logsumexp(-vals / tau))
 
-    stljax_max = float(
-        stljax_utils.maxish(
-            vals,
-            axis=0,
-            keepdims=False,
-            approx_method="logsumexp",
-            temperature=beta,
+    agg_max = float(
+        maxish(
+            vals, axis=0, keepdims=False, approx_method="logsumexp", temperature=beta
         )
     )
-    stljax_min = float(
-        stljax_utils.minish(
-            vals,
-            axis=0,
-            keepdims=False,
-            approx_method="logsumexp",
-            temperature=beta,
+    agg_min = float(
+        minish(
+            vals, axis=0, keepdims=False, approx_method="logsumexp", temperature=beta
         )
     )
 
-    assert stljax_max == pytest.approx(ours_max, abs=1e-6)
-    assert stljax_min == pytest.approx(ours_min, abs=1e-6)
+    assert agg_max == pytest.approx(ours_max, abs=1e-6)
+    assert agg_min == pytest.approx(ours_min, abs=1e-6)
 
 
-def test_smooth_matches_stljax_formula_robustness(
+def test_smooth_matches_reference_formula_robustness(
     signal_np: np.ndarray, signal_jax: jax.Array, predicates
 ) -> None:
     p1, p2 = predicates
@@ -153,14 +145,14 @@ def test_smooth_matches_stljax_formula_robustness(
     sem_jax = create_semantics("smooth", backend="jax", temperature=tau)
 
     for phi, valid_t in formulas:
-        stljax_eval = StlJaxFormulaWrapper(
+        reference_eval = JaxReferenceFormulaWrapper(
             phi, approx_method="logsumexp", temperature=beta
         )
-        stljax_trace = stljax_eval.robustness_trace(signal_np)
+        reference_trace = reference_eval.robustness_trace(signal_np)
         for t in valid_t:
             ours_np = float(phi.evaluate(signal_np, sem_np, t=t))
             ours_jax = float(phi.evaluate(signal_jax, sem_jax, t=t))
-            theirs = float(stljax_trace[t])
+            theirs = float(reference_trace[t])
             assert ours_np == pytest.approx(theirs, abs=1e-6)
             assert ours_jax == pytest.approx(theirs, abs=1e-6)
 

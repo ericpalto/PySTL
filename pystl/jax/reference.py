@@ -1,4 +1,9 @@
-"""Wrapper/adapters for using unified STL formulas with the `stljax` package."""
+"""Reference JAX implementation for robustness traces.
+
+This module exists primarily for cross-checks and as a simple, readable
+implementation of STL robustness in JAX. It is not part of the main
+`create_semantics(...)` registry.
+"""
 
 from __future__ import annotations
 
@@ -8,10 +13,10 @@ from dataclasses import dataclass
 
 import numpy as np
 import jax.numpy as jnp
-import stljax.formula as stljax_formula
-from stljax import utils as stljax_utils
 
-from .base import Semantics
+from . import reference_formula as ref_formula
+from .aggregators import maxish, minish
+from ..semantics.base import Semantics
 
 if TYPE_CHECKING:
     from ..api import Formula
@@ -19,12 +24,10 @@ if TYPE_CHECKING:
 
 def _ensure_no_weights(weights: Optional[Sequence[float]], where: str) -> None:
     if weights is not None:
-        raise ValueError(
-            f"`{where}` does not support explicit weights in stljax wrapper."
-        )
+        raise ValueError(f"`{where}` does not support explicit weights.")
 
 
-def _to_stljax_interval(start: int, end: Optional[int]):
+def _to_interval(start: int, end: Optional[int]):
     if start == 0 and end is None:
         return None
     if end is None:
@@ -32,8 +35,8 @@ def _to_stljax_interval(start: int, end: Optional[int]):
     return [start, end]
 
 
-def to_stljax_formula(formula: "Formula"):
-    """Convert unified API `Formula` into a native `stljax.formula` object."""
+def to_reference_formula(formula: "Formula"):
+    """Convert unified API `Formula` into a `pystl.jax.reference_formula` object."""
 
     # Delayed import avoids circular dependency with pystl.api -> pystl.semantics.
     # pylint: disable=import-outside-toplevel
@@ -42,8 +45,7 @@ def to_stljax_formula(formula: "Formula"):
     if isinstance(formula, Predicate):
         if formula.fn is None:
             raise ValueError(
-                f"Predicate '{formula.name}' requires `fn(signal, t)` "
-                "for stljax conversion."
+                f"Predicate '{formula.name}' requires `fn(signal, t)` for conversion."
             )
 
         def _predicate_fn(signal):
@@ -52,57 +54,55 @@ def to_stljax_formula(formula: "Formula"):
             vals = np.asarray([formula.fn(sig, t) for t in range(horizon)], dtype=float)
             return jnp.asarray(vals)
 
-        return stljax_formula.Predicate(
+        return ref_formula.Predicate(
             name=formula.name, predicate_function=_predicate_fn
         )
 
     if isinstance(formula, Not):
-        return stljax_formula.Negation(to_stljax_formula(formula.child))
+        return ref_formula.Negation(to_reference_formula(formula.child))
 
     if isinstance(formula, And):
         _ensure_no_weights(formula.weights, "And.weights")
-        converted = [to_stljax_formula(child) for child in formula.children]
-        return reduce(stljax_formula.And, converted)
+        converted = [to_reference_formula(child) for child in formula.children]
+        return reduce(ref_formula.And, converted)
 
     if isinstance(formula, Or):
         _ensure_no_weights(formula.weights, "Or.weights")
-        converted = [to_stljax_formula(child) for child in formula.children]
-        return reduce(stljax_formula.Or, converted)
+        converted = [to_reference_formula(child) for child in formula.children]
+        return reduce(ref_formula.Or, converted)
 
     if isinstance(formula, Always):
         _ensure_no_weights(formula.weights, "Always.weights")
-        interval = _to_stljax_interval(formula.interval.start, formula.interval.end)
-        return stljax_formula.Always(
-            to_stljax_formula(formula.child), interval=interval
+        interval = _to_interval(formula.interval.start, formula.interval.end)
+        return ref_formula.Always(
+            to_reference_formula(formula.child), interval=interval
         )
 
     if isinstance(formula, Eventually):
         _ensure_no_weights(formula.weights, "Eventually.weights")
-        interval = _to_stljax_interval(formula.interval.start, formula.interval.end)
-        return stljax_formula.Eventually(
-            to_stljax_formula(formula.child), interval=interval
+        interval = _to_interval(formula.interval.start, formula.interval.end)
+        return ref_formula.Eventually(
+            to_reference_formula(formula.child), interval=interval
         )
 
     if isinstance(formula, Until):
         _ensure_no_weights(formula.weights_left, "Until.weights_left")
         _ensure_no_weights(formula.weights_right, "Until.weights_right")
         if tuple(formula.weights_pair) != (1.0, 1.0):
-            raise ValueError("`Until.weights_pair` is not supported in stljax wrapper.")
-        interval = _to_stljax_interval(formula.interval.start, formula.interval.end)
-        return stljax_formula.Until(
-            to_stljax_formula(formula.left),
-            to_stljax_formula(formula.right),
+            raise ValueError("`Until.weights_pair` is not supported by reference impl.")
+        interval = _to_interval(formula.interval.start, formula.interval.end)
+        return ref_formula.Until(
+            to_reference_formula(formula.left),
+            to_reference_formula(formula.right),
             interval=interval,
         )
 
-    raise TypeError(
-        f"Unsupported formula type for stljax conversion: {type(formula)!r}"
-    )
+    raise TypeError(f"Unsupported formula type for conversion: {type(formula)!r}")
 
 
 @dataclass(frozen=True)
-class StlJaxFormulaWrapper:
-    """Compile and evaluate a unified API formula with native stljax operators."""
+class JaxReferenceFormulaWrapper:
+    """Compile and evaluate a unified API formula with the reference JAX operators."""
 
     formula: "Formula"
     approx_method: str = "true"
@@ -119,7 +119,7 @@ class StlJaxFormulaWrapper:
         }
 
     def robustness_trace(self, signal) -> np.ndarray:
-        compiled = to_stljax_formula(self.formula)
+        compiled = to_reference_formula(self.formula)
         trace = compiled.robustness_trace(jnp.asarray(signal), **self._kwargs())
         return np.asarray(trace, dtype=float)
 
@@ -133,11 +133,8 @@ class StlJaxFormulaWrapper:
         return float(trace[t])
 
 
-class StlJaxSemantics(Semantics[float]):
-    """Unified API semantics backend using stljax min/max logic.
-
-    This backend supports the unified `Formula.evaluate(signal, semantics, t)` flow.
-    """
+class ReferenceMinMaxFloatSemantics(Semantics[float]):
+    """Float-valued semantics using `minish`/`maxish` aggregators (reference-only)."""
 
     def __init__(
         self,
@@ -150,7 +147,7 @@ class StlJaxSemantics(Semantics[float]):
 
     def _minish(self, values: Sequence[float]) -> float:
         arr = jnp.asarray(values, dtype=float)
-        out = stljax_utils.minish(
+        out = minish(
             arr,
             axis=0,
             keepdims=False,
@@ -161,7 +158,7 @@ class StlJaxSemantics(Semantics[float]):
 
     def _maxish(self, values: Sequence[float]) -> float:
         arr = jnp.asarray(values, dtype=float)
-        out = stljax_utils.maxish(
+        out = maxish(
             arr,
             axis=0,
             keepdims=False,
@@ -211,9 +208,7 @@ class StlJaxSemantics(Semantics[float]):
         _ensure_no_weights(weights_left, "Until.weights_left")
         _ensure_no_weights(weights_right, "Until.weights_right")
         if tuple(weights_pair) != (1.0, 1.0):
-            raise ValueError(
-                "`Until.weights_pair` is not supported by stljax semantics backend."
-            )
+            raise ValueError("`Until.weights_pair` is not supported by reference impl.")
 
         left = np.asarray(left_trace, dtype=float)
         right = np.asarray(right_trace, dtype=float)
@@ -234,3 +229,10 @@ class StlJaxSemantics(Semantics[float]):
             pair_val = self._minish([prefix_min, float(right[idx])])
             candidates.append(pair_val)
         return self._maxish(candidates)
+
+
+__all__ = [
+    "to_reference_formula",
+    "JaxReferenceFormulaWrapper",
+    "ReferenceMinMaxFloatSemantics",
+]

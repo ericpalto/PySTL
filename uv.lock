@@ -647,7 +647,6 @@ dependencies = [
 jax = [
     { name = "jax" },
     { name = "jaxlib" },
-    { name = "stljax" },
 ]
 torch = [
     { name = "torch" },
@@ -665,7 +664,6 @@ requires-dist = [
     { name = "jax", marker = "extra == 'jax'", specifier = ">=0.9.0.1" },
     { name = "jaxlib", marker = "extra == 'jax'", specifier = ">=0.9.0.1" },
     { name = "numpy", specifier = ">=2.4.2" },
-    { name = "stljax", marker = "extra == 'jax'", specifier = ">=1.1.3" },
     { name = "torch", marker = "extra == 'torch'" },
 ]
 provides-extras = ["jax", "torch"]
@@ -826,20 +824,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/82/f3/748f4d6f65d1756b9ae577f329c951cda23fb900e4de9f70900ced962085/setuptools-82.0.0.tar.gz", hash = "sha256:22e0a2d69474c6ae4feb01951cb69d515ed23728cf96d05513d36e42b62b37cb", size = 1144893, upload-time = "2026-02-08T15:08:40.206Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e1/c6/76dc613121b793286a3f91621d7b75a2b493e0390ddca50f11993eadf192/setuptools-82.0.0-py3-none-any.whl", hash = "sha256:70b18734b607bd1da571d097d236cfcfacaf01de45717d59e6e04b96877532e0", size = 1003468, upload-time = "2026-02-08T15:08:38.723Z" },
-]
-
-[[package]]
-name = "stljax"
-version = "1.1.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "graphviz" },
-    { name = "jax" },
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ff/9a/e892381c477a03d58af17eeefafc9f25376ac664510b3b558e3a3f20236d/stljax-1.1.3.tar.gz", hash = "sha256:a9d3ecc419eb27a3bb98c43b60696c759b84a1afdb4032b9ccc57abda1192598", size = 15735, upload-time = "2025-07-14T22:23:37.576Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/11/324dadf8c57a7a7db86cef2630076964865da4657476ed1445f78d658112/stljax-1.1.3-py3-none-any.whl", hash = "sha256:aea649eff321fbd6f0c542955c8cabba5b1dfbda5e3970bd8676d25d22a05a9d", size = 13645, upload-time = "2025-07-14T22:23:34.652Z" },
 ]
 
 [[package]]

@@ -11,9 +11,10 @@ from typing import Any, Optional, Sequence
 from dataclasses import dataclass
 
 import jax.numpy as jnp
-from stljax import utils as stljax_utils
 from jax.scipy.special import logsumexp
 
+from .aggregators import maxish as _maxish
+from .aggregators import minish as _minish
 from ..semantics.base import Semantics
 
 
@@ -569,8 +570,8 @@ class JaxDgmsrSemantics(Semantics[Any]):
         return _gmsr_or_jax(eps=self.eps, p=self.p, weights=w_right, values=s_arr)
 
 
-class JaxStlJaxSemantics(Semantics[Any]):
-    """JAX-friendly semantics using stljax minish/maxish aggregators."""
+class JaxMinishMaxishSemantics(Semantics[Any]):
+    """JAX semantics using `minish`/`maxish` aggregators."""
 
     def __init__(
         self,
@@ -585,7 +586,7 @@ class JaxStlJaxSemantics(Semantics[Any]):
         arr = jnp.asarray(values, dtype=float)
         if arr.size == 0:
             raise ValueError(f"{where} requires at least one value.")
-        return stljax_utils.minish(
+        return _minish(
             arr,
             axis=0,
             keepdims=False,
@@ -597,7 +598,7 @@ class JaxStlJaxSemantics(Semantics[Any]):
         arr = jnp.asarray(values, dtype=float)
         if arr.size == 0:
             raise ValueError(f"{where} requires at least one value.")
-        return stljax_utils.maxish(
+        return _maxish(
             arr,
             axis=0,
             keepdims=False,
@@ -641,7 +642,9 @@ class JaxStlJaxSemantics(Semantics[Any]):
         _ensure_no_weights(weights_left, "Until.weights_left")
         _ensure_no_weights(weights_right, "Until.weights_right")
         if tuple(weights_pair) != (1.0, 1.0):
-            raise ValueError("`Until.weights_pair` is not supported by jax_stljax.")
+            raise ValueError(
+                "`Until.weights_pair` is not supported by JaxMinishMaxishSemantics."
+            )
 
         left = jnp.asarray(left_trace, dtype=float)
         right = jnp.asarray(right_trace, dtype=float)
@@ -679,5 +682,5 @@ __all__ = [
     "jax_tau_to_k",
     "JaxCtstlSemantics",
     "JaxDgmsrSemantics",
-    "JaxStlJaxSemantics",
+    "JaxMinishMaxishSemantics",
 ]

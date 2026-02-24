@@ -196,7 +196,7 @@ def test_interval_validation() -> None:
 
 def test_unknown_syntax_or_backend_raises() -> None:
     with pytest.raises(KeyError):
-        create_semantics("stljax")
+        create_semantics("not_a_syntax")
     with pytest.raises(KeyError):
         create_semantics("classic")
     with pytest.raises(KeyError):
