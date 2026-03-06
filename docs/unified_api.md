@@ -63,6 +63,16 @@ phi.until(psi, Interval(0, 5))
 
 Tuple shorthand is also accepted: `phi.always((0, 4))`.
 
+### Formula export
+
+Formula syntax can be exported without selecting any backend:
+
+```python
+phi.export("text")      # always/eventually/until
+phi.export("markdown")  # G/F/U
+phi.export("latex")     # \square/\lozenge/\mathcal{U}
+```
+
 #### Weighted operators
 
 `And`, `Or`, `always`, and `eventually` accept an optional `weights` argument to scale the contribution of each operand or time step. Weights are semantics-dependent — they are used by semantics that support them (e.g., AGM, D-GMSR) and ignored by those that don't (e.g., Classical).

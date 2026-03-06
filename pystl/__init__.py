@@ -1,4 +1,16 @@
-from .api import Or, And, Not, Until, Always, Formula, Interval, Predicate, Eventually
+from .api import (
+    Or,
+    And,
+    Not,
+    Until,
+    Always,
+    Formula,
+    Interval,
+    Predicate,
+    Eventually,
+    FormulaFormat,
+    export_formula,
+)
 from .semantics import (
     CtstlSemantics,
     DgmsrSemantics,
@@ -15,6 +27,7 @@ from .semantics import (
 
 __all__ = [
     "Formula",
+    "FormulaFormat",
     "Predicate",
     "Not",
     "And",
@@ -23,6 +36,7 @@ __all__ = [
     "Eventually",
     "Until",
     "Interval",
+    "export_formula",
     "ClassicRobustSemantics",
     "SmoothRobustSemantics",
     "AgmRobustSemantics",
