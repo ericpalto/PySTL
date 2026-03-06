@@ -12,7 +12,7 @@ Each formula is evaluated by a semantics backend implementing
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Optional, Sequence, TypeAlias
+from typing import Any, Literal, Callable, Optional, Sequence, TypeAlias
 from dataclasses import dataclass
 
 import numpy as np
@@ -23,6 +23,7 @@ from .semantics.base import Semantics
 Signal: TypeAlias = NDArray[np.float64]
 PredicateFn = Callable[[Signal, int], Any]
 PredicateGradFn = Callable[[Signal, int], NDArray[np.float64] | Sequence[float]]
+FormulaFormat: TypeAlias = Literal["text", "markdown", "latex"]
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,11 @@ class Formula(ABC):
             )
         value, grad = evaluator(self, signal, t=t, **kwargs)
         return value, np.asarray(grad, dtype=float)
+
+    def export(self, fmt: str = "text", **kwargs: Any) -> str:
+        """Export a formula as plain text, Markdown, or LaTeX."""
+
+        return export_formula(self, fmt=fmt, **kwargs)
 
     def __and__(self, other: "Formula") -> "And":
         return And(self, other)
@@ -296,9 +302,131 @@ class Until(Formula):
         )
 
 
+def _resolve_export_format(fmt: str, kwargs: dict[str, Any]) -> str:
+    format_alias = kwargs.pop("format", None)
+    if format_alias is not None:
+        if fmt != "text":
+            raise TypeError("Use either 'fmt' or 'format', not both.")
+        if not isinstance(format_alias, str):
+            raise TypeError("'format' must be a string.")
+        fmt = format_alias
+    if kwargs:
+        unknown = ", ".join(sorted(kwargs))
+        raise TypeError(f"Unexpected keyword argument(s): {unknown}.")
+    return fmt
+
+
+def _normalize_format(format_name: str) -> FormulaFormat:
+    key = format_name.strip().lower()
+    aliases: dict[str, FormulaFormat] = {
+        "text": "text",
+        "plain": "text",
+        "plaintext": "text",
+        "txt": "text",
+        "markdown": "markdown",
+        "md": "markdown",
+        "latex": "latex",
+        "tex": "latex",
+    }
+    if key not in aliases:
+        msg = "Unsupported export format. Use one of: 'text', 'markdown', 'latex'."
+        raise ValueError(msg)
+    return aliases[key]
+
+
+def _format_interval(interval: Interval, fmt: FormulaFormat) -> str:
+    if interval.end is None:
+        end = r"\infty" if fmt == "latex" else "inf"
+    else:
+        end = str(interval.end)
+    return f"[{interval.start}, {end}]"
+
+
+def _escape_latex(text: str) -> str:
+    chars = {
+        "\\": r"\textbackslash{}",
+        "{": r"\{",
+        "}": r"\}",
+        "_": r"\_",
+        "^": r"\^{}",
+        "#": r"\#",
+        "$": r"\$",
+        "%": r"\%",
+        "&": r"\&",
+        "~": r"\~{}",
+    }
+    return "".join(chars.get(ch, ch) for ch in text)
+
+
+def _wrap(expr: str, fmt: FormulaFormat) -> str:
+    if fmt == "latex":
+        return rf"\left({expr}\right)"
+    return f"({expr})"
+
+
+def _format_formula(formula: Formula, fmt: FormulaFormat) -> str:
+    if isinstance(formula, Predicate):
+        return _escape_latex(formula.name) if fmt == "latex" else formula.name
+
+    if isinstance(formula, Not):
+        child = _format_formula(formula.child, fmt)
+        if fmt == "latex":
+            return rf"\neg{_wrap(child, fmt)}"
+        return f"not {_wrap(child, fmt)}"
+
+    if isinstance(formula, And):
+        children = [_format_formula(child, fmt) for child in formula.children]
+        joiner = r" \wedge " if fmt == "latex" else " and "
+        return _wrap(joiner.join(children), fmt)
+
+    if isinstance(formula, Or):
+        children = [_format_formula(child, fmt) for child in formula.children]
+        joiner = r" \vee " if fmt == "latex" else " or "
+        return _wrap(joiner.join(children), fmt)
+
+    if isinstance(formula, Always):
+        child = _format_formula(formula.child, fmt)
+        interval = _format_interval(formula.interval, fmt)
+        if fmt == "text":
+            return f"always{interval}{_wrap(child, fmt)}"
+        if fmt == "markdown":
+            return f"G{interval}{_wrap(child, fmt)}"
+        return rf"\square_{{{interval}}}{_wrap(child, fmt)}"
+
+    if isinstance(formula, Eventually):
+        child = _format_formula(formula.child, fmt)
+        interval = _format_interval(formula.interval, fmt)
+        if fmt == "text":
+            return f"eventually{interval}{_wrap(child, fmt)}"
+        if fmt == "markdown":
+            return f"F{interval}{_wrap(child, fmt)}"
+        return rf"\lozenge_{{{interval}}}{_wrap(child, fmt)}"
+
+    if isinstance(formula, Until):
+        left = _format_formula(formula.left, fmt)
+        right = _format_formula(formula.right, fmt)
+        interval = _format_interval(formula.interval, fmt)
+        if fmt == "text":
+            return f"{_wrap(left, fmt)} until{interval} {_wrap(right, fmt)}"
+        if fmt == "markdown":
+            return f"{_wrap(left, fmt)} U{interval} {_wrap(right, fmt)}"
+        return rf"{_wrap(left, fmt)}\ \mathcal{{U}}_{{{interval}}}\ {_wrap(right, fmt)}"
+
+    raise TypeError(f"Unsupported formula node: {type(formula)!r}")
+
+
+def export_formula(formula: Formula, *, fmt: str = "text", **kwargs: Any) -> str:
+    """Export a formula as plain text, Markdown, or LaTeX."""
+
+    selected_fmt = _resolve_export_format(fmt, kwargs)
+    normalized_fmt = _normalize_format(selected_fmt)
+    return _format_formula(formula, normalized_fmt)
+
+
 __all__ = [
     "Signal",
     "PredicateFn",
+    "FormulaFormat",
     "Interval",
     "Formula",
     "Predicate",
@@ -308,4 +436,5 @@ __all__ = [
     "Always",
     "Eventually",
     "Until",
+    "export_formula",
 ]

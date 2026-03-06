@@ -11,7 +11,7 @@ All public symbols are importable from the top-level `pystl` package.
 from pystl import (
     Predicate, Interval,
     Formula, Not, And, Or, Always, Eventually, Until,
-    create_semantics, registry,
+    export_formula, create_semantics, registry,
 )
 ```
 
@@ -79,6 +79,16 @@ Evaluate robustness and the gradient w.r.t. the full signal trace.
 
 This is only supported by some semantics/backends (currently: D-GMSR with the NumPy backend). For JAX/PyTorch backends, prefer their native autodiff (`jax.grad` / `torch.autograd`).
 
+### `Formula.export(format="text")`
+
+Export the formula syntax tree to a string format, independent of semantics/backend.
+
+- `format="text"`: plain text (`always`, `eventually`, `until`)
+- `format="markdown"`: Markdown-friendly notation (`G`, `F`, `U`)
+- `format="latex"`: LaTeX notation (`\square`, `\lozenge`, `\mathcal{U}`)
+
+`format` aliases are accepted: `plain`, `txt`, `md`, `tex`.
+
 ### Operator shorthands
 
 | Expression | Equivalent |
@@ -89,6 +99,10 @@ This is only supported by some semantics/backends (currently: D-GMSR with the Nu
 | `phi.always(interval)` | `Always(phi, interval)` |
 | `phi.eventually(interval)` | `Eventually(phi, interval)` |
 | `phi1.until(phi2, interval)` | `Until(phi1, phi2, interval)` |
+
+### `export_formula(formula, format="text")`
+
+Module-level helper equivalent to `formula.export(format=...)`.
 
 ---
 
